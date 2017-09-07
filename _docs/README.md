@@ -1,6 +1,6 @@
 # Minio on Kubernetes
 
-Please see [the top level README](https://github.com/deis/minio/blob/master/README.md) for a description of what this project does.
+Please see [the top level README](https://github.com/deisthree/minio/blob/master/README.md) for a description of what this project does.
 
 # Example Client Usage
 
