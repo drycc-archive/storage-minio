@@ -1,7 +1,7 @@
 
 # Deis Minio v2
 
-[![Build Status](https://ci.deis.io/job/minio/badge/icon)](https://ci.deis.io/job/minio)
+[![Build Status](https://travis-ci.org/teamhephy/minio.svg?branch=master)](https://travis-ci.org/teamhephy/minio)
 [![Go Report Card](http://goreportcard.com/badge/deis/minio)](http://goreportcard.com/report/deis/minio)
 [![Docker Repository on Quay](https://quay.io/repository/deisci/minio/status "Docker Repository on Quay")](https://quay.io/repository/deisci/minio)
 
