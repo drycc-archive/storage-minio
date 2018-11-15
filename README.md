@@ -1,7 +1,7 @@
 
 # Deis Minio v2
 
-[![Build Status](https://ci.deis.io/job/minio/badge/icon)](https://ci.deis.io/job/minio)
+[![Build Status](https://travis-ci.org/teamhephy/minio.svg?branch=master)](https://travis-ci.org/teamhephy/minio)
 [![Go Report Card](http://goreportcard.com/badge/deis/minio)](http://goreportcard.com/report/deis/minio)
 [![Docker Repository on Quay](https://quay.io/repository/deisci/minio/status "Docker Repository on Quay")](https://quay.io/repository/deisci/minio)
 
@@ -32,12 +32,6 @@ The Deis project welcomes contributions from all developers. The high level proc
 * Submit a [pull request][prs] (PR) to this repository with your changes, and unit tests whenever possible.
 * If your PR fixes any [issues][issues], make sure you write Fixes #1234 in your PR description (where #1234 is the number of the issue you're closing)
 * The Deis core contributors will review your code. After each of them sign off on your code, they'll label your PR with `LGTM1` and `LGTM2` (respectively). Once that happens, you may merge.
-
-## Minio Binary Mirror
-
-Also, note that the [Dockerfile](rootfs/Dockerfile) uses an `ADD` directive to download pre-built Minio binaries from a [Google Cloud Storage bucket](https://console.cloud.google.com/storage/browser/minio-mirror/?project=deis-mirrors). The bucket is in the `deis-mirrors` project, and if you have access to that project, [this link](https://console.cloud.google.com/storage/browser/minio-mirror/?project=deis-mirrors) should take you directly to that bucket.
-
-To bump this component to use a newer build of Minio, simply add a new binary to the bucket (under the `linux-amd64` folder), check the checkbox under the `Share publicly` column, and update the URL in the `ADD` directive in the aforementioned `Dockerfile`.
 
 ## Docker Based Development Environment
 
