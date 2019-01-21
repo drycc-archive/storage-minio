@@ -1,7 +1,7 @@
 name: minio
-home: https://github.com/deisthree/minio
+home: https://github.com/drycc/minio
 version:  <Will be populated by the ci before publishing the chart>
-description: Minio Object Storage in Kubernetes, used by Deis Workflow.
+description: Minio Object Storage in Kubernetes, used by Drycc Workflow.
 maintainers:
-  - name: Deis Team
-    email: engineering@deis.com
+  - name: Drycc Team
+    email: engineering@drycc.com

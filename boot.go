@@ -12,8 +12,8 @@ import (
 	"strings"
 	"text/template"
 
-	"github.com/deis/minio/src/healthsrv"
-	"github.com/deis/pkg/utils"
+	"github.com/drycc/minio/src/healthsrv"
+	"github.com/drycc/pkg/utils"
 	minio "github.com/minio/minio-go"
 )
 
@@ -78,9 +78,9 @@ func run(cmd string) error {
 }
 
 func readSecrets() (string, string) {
-	keyID, err := ioutil.ReadFile("/var/run/secrets/deis/minio/user/accesskey")
+	keyID, err := ioutil.ReadFile("/var/run/secrets/drycc/minio/user/accesskey")
 	checkError(err)
-	accessKey, err := ioutil.ReadFile("/var/run/secrets/deis/minio/user/secretkey")
+	accessKey, err := ioutil.ReadFile("/var/run/secrets/drycc/minio/user/secretkey")
 	checkError(err)
 	return strings.TrimSpace(string(keyID)), strings.TrimSpace(string(accessKey))
 }

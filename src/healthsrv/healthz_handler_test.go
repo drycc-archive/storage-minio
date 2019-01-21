@@ -8,7 +8,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/deis/minio/src/storage"
+	"github.com/drycc/minio/src/storage"
 	minio "github.com/minio/minio-go"
 )
 

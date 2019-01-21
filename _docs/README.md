@@ -1,6 +1,6 @@
 # Minio on Kubernetes
 
-Please see [the top level README](https://github.com/deisthree/minio/blob/master/README.md) for a description of what this project does.
+Please see [the top level README](https://github.com/drycc/minio/blob/master/README.md) for a description of what this project does.
 
 # Example Client Usage
 
@@ -11,7 +11,7 @@ Assuming you've installed the Kubernetes service and replication controller (run
 # If you've mounted the secret elsewhere, adjust as necessary.
 ACCESS_KEY_ID=`cat /var/run/secrets/object/store/access-key-id`
 ACCESS_SECRET_KEY=`cat /var/run/secrets/object/store/access-secret-key`
-BASE_SERVER="http://${DEIS_MINIO_SERVICE_HOST}:${DEIS_MINIO_SERVICE_PORT}"
+BASE_SERVER="http://${DRYCC_MINIO_SERVICE_HOST}:${DRYCC_MINIO_SERVICE_PORT}"
 mc config host add $BASE_SERVER $ACCESS_KEY_ID $ACCESS_KEY_SECRET
 mc mb "${BASE_SERVER}/mybucket"
 ```

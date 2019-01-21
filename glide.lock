@@ -1,8 +1,8 @@
 hash: 37a44159f052019502e3fa7379f5fb92b9a9a5fa7bbc2dbaf7d4d3aa0c44f695
 updated: 2016-09-06T17:49:12.271668528-06:00
 imports:
-- name: github.com/deis/pkg
-  version: 189ed6bd6b6aa6629b72c2c5472095e176eec8a6
+- name: github.com/drycc/pkg
+  version: 5c1dfa7b5446283ec3bdc7e8c3ef367bb5c1b4d1
   subpackages:
   - utils
 - name: github.com/minio/minio-go

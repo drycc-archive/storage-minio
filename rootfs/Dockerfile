@@ -18,4 +18,4 @@ RUN mkdir /home/minio/.minio \
 
 USER minio
 
-CMD ["/bin/boot"]
+ENTRYPOINT ["/bin/boot"]
