@@ -22,7 +22,7 @@ spec:
       serviceAccount: drycc-minio
       containers:
         - name: drycc-minio
-          image: quay.io/{{.Values.org}}/minio:{{.Values.docker_tag}}
+          image: {{.Values.docker_registry}}{{.Values.org}}/minio:{{.Values.docker_tag}}
           imagePullPolicy: {{.Values.pull_policy}}
           env:
             - name: HEALTH_SERVER_PORT
@@ -43,9 +43,9 @@ spec:
             initialDelaySeconds: 30
             timeoutSeconds: 1
           command:
-            - server
+            - boot
           args:
-            - "/home/minio/"
+            - "server /home/minio/"
           volumeMounts:
             - name: minio-user
               mountPath: /var/run/secrets/drycc/minio/user
