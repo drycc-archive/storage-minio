@@ -43,9 +43,9 @@ spec:
             initialDelaySeconds: 30
             timeoutSeconds: 1
           command:
-            - server
+            - boot
           args:
-            - "/home/minio/"
+            - "server /home/minio/"
           volumeMounts:
             - name: minio-user
               mountPath: /var/run/secrets/drycc/minio/user
