@@ -1,4 +1,3 @@
-{{- if eq .Values.global.storage "minio" }}
 apiVersion: extensions/v1beta1
 kind: Deployment
 metadata:
@@ -25,6 +24,8 @@ spec:
           image: {{.Values.docker_registry}}{{.Values.org}}/minio:{{.Values.docker_tag}}
           imagePullPolicy: {{.Values.pull_policy}}
           env:
+            - name: STORAGE
+              value: "{{.Values.global.storage}}"
             - name: HEALTH_SERVER_PORT
               value: "8082"
           ports:
@@ -45,13 +46,17 @@ spec:
           command:
             - boot
           args:
-            - "server /home/minio/"
+            {{- if eq .Values.global.storage "minio" }}
+            - "server"
+            - "/home/minio/"
+            {{- else}}
+            - "gateway"
+            - "{{.Values.global.storage}}"
+            {{- end}}
           volumeMounts:
-            - name: minio-user
-              mountPath: /var/run/secrets/drycc/minio/user
-              readOnly: true
+            - name: objectstore-creds
+              mountPath: /var/run/secrets/drycc/objectstore/creds
       volumes:
-        - name: minio-user
+        - name: objectstore-creds
           secret:
-            secretName: minio-user
-{{- end }}
+            secretName: objectstorage-keyfile

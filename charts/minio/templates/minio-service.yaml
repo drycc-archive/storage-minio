@@ -1,4 +1,3 @@
-{{- if eq .Values.global.storage "minio" }}
 apiVersion: v1
 kind: Service
 metadata:
@@ -11,4 +10,3 @@ spec:
       port: 9000
   selector:
     app: drycc-minio
-{{- end }}

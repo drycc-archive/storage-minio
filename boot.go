@@ -7,6 +7,7 @@ import (
 	"io/ioutil"
 	"log"
 	"os"
+	"regexp"
 	"os/exec"
 	"strconv"
 	"strings"
@@ -28,38 +29,7 @@ var (
 	errMinioExited     = errors.New("Minio server exited with unknown status")
 )
 
-// Secret is a secret for the remote object storage
-type Secret struct {
-	Host      string
-	KeyID     string
-	AccessKey string
-	Region    string
-}
-
 const configdir = "/home/minio/.minio/"
-
-const templv2 = `{
-	"version": "2",
-	"credentials": {
-  {{range .}}
-		"accessKeyId": "{{.KeyID}}",
-		"secretAccessKey": "{{.AccessKey}}",
-		"region": "{{.Region}}"
-  {{end}}
-	},
-	"mongoLogger": {
-		"addr": "",
-		"db": "",
-		"collection": ""
-	},
-	"syslogLogger": {
-		"network": "",
-		"addr": ""
-	},
-	"fileLogger": {
-		"filename": ""
-	}
-}`
 
 func run(cmd string) error {
 	var cmdBuf bytes.Buffer
@@ -78,11 +48,15 @@ func run(cmd string) error {
 }
 
 func readSecrets() (string, string) {
-	keyID, err := ioutil.ReadFile("/var/run/secrets/drycc/minio/user/accesskey")
+	key := readConfig("/var/run/secrets/drycc/objectstore/creds/accesskey")
+	secret := readConfig("/var/run/secrets/drycc/objectstore/creds/secretkey")
+	return key, secret
+}
+
+func readConfig(filename string) string {
+	value, err := ioutil.ReadFile(filename)
 	checkError(err)
-	accessKey, err := ioutil.ReadFile("/var/run/secrets/drycc/minio/user/secretkey")
-	checkError(err)
-	return strings.TrimSpace(string(keyID)), strings.TrimSpace(string(accessKey))
+	return strings.TrimSpace(string(value))
 }
 
 func newMinioClient(host, port, accessKey, accessSecret string, insecure bool) (minio.CloudStorageClient, error) {
@@ -94,7 +68,60 @@ func newMinioClient(host, port, accessKey, accessSecret string, insecure bool) (
 	)
 }
 
-func main() {
+func startServer(runErrCh chan error) {
+
+	key, access := readSecrets()
+
+        err := os.Setenv("MINIO_ACCESS_KEY", key)
+        checkError(err)
+        err = os.Setenv("MINIO_SECRET_KEY", access)
+        checkError(err)
+
+	os.Args[0] = "minio"
+	mc := strings.Join(os.Args, " ")
+	log.Printf("starting Minio server")
+	go func() {
+		if err := run(mc); err != nil {
+			runErrCh <- err
+		} else {
+			runErrCh <- errMinioExited
+		}
+	}()
+
+}
+
+func startGateway(runErrCh chan error) {
+	key, access := readSecrets()
+	err := os.Setenv("MINIO_ACCESS_KEY", key)
+	checkError(err)
+	err = os.Setenv("MINIO_SECRET_KEY", access)
+	checkError(err)
+
+	storage := os.Args[2]
+	if storage == "gcs" {
+		projectid := readConfig("/var/run/secrets/drycc/objectstore/creds/projectid")
+		os.Args = append(os.Args, projectid)
+		err = os.Setenv("GOOGLE_APPLICATION_CREDENTIALS", "/var/run/secrets/drycc/objectstore/creds/key.json")
+		checkError(err)
+	} else {
+		endpoint := readConfig("/var/run/secrets/drycc/objectstore/creds/endpoint")
+		checkError(err)
+		os.Args = append(os.Args, endpoint)
+	}
+
+	os.Args[0] = "minio"
+	mc := strings.Join(os.Args, " ")
+	log.Printf("starting Minio gateway")
+	go func() {
+		if err := run(mc); err != nil {
+			runErrCh <- err
+		} else {
+			runErrCh <- errMinioExited
+		}
+	}()
+}
+
+func startHealth(healthSrvErrCh chan error) {
 	key, access := readSecrets()
 
 	minioHost := os.Getenv("MINIO_HOST")
@@ -111,35 +138,6 @@ func main() {
 		os.Exit(1)
 	}
 
-	secrets := []Secret{
-		{
-			KeyID:     key,
-			AccessKey: access,
-			Region:    "us-east-1",
-		},
-	}
-	t := template.New("MinioTpl")
-	t, err = t.Parse(templv2)
-	checkError(err)
-
-	err = os.MkdirAll(configdir, 0755)
-	checkError(err)
-	output, err := os.Create(configdir + "config.json")
-	checkError(err)
-	err = t.Execute(output, secrets)
-	checkError(err)
-	os.Args[0] = "minio"
-	mc := strings.Join(os.Args, " ")
-	runErrCh := make(chan error)
-	log.Printf("starting Minio server")
-	go func() {
-		if err := run(mc); err != nil {
-			runErrCh <- err
-		} else {
-			runErrCh <- errMinioExited
-		}
-	}()
-
 	healthSrvHost := os.Getenv("HEALTH_SERVER_HOST")
 	if healthSrvHost == "" {
 		healthSrvHost = healthsrv.DefaultHost
@@ -151,7 +149,6 @@ func main() {
 
 	log.Printf("starting health check server on %s:%d", healthSrvHost, healthSrvPort)
 
-	healthSrvErrCh := make(chan error)
 	go func() {
 		if err := healthsrv.Start(healthSrvHost, healthSrvPort, minioClient); err != nil {
 			healthSrvErrCh <- err
@@ -159,20 +156,33 @@ func main() {
 			healthSrvErrCh <- errHealthSrvExited
 		}
 	}()
+}
 
+func checkError(err error) {
+	if err != nil {
+		fmt.Println("Fatal error ", err.Error())
+		os.Exit(1)
+	}
+}
+
+func main() {
+	runErrCh := make(chan error)
+	healthSrvErrCh := make(chan error)
+
+	service := regexp.MustCompile("[ \t]").Split(os.Args[1], -1)[0]
+	if service == "server" {
+		startServer(runErrCh)
+	} else if service == "gateway" {
+		startGateway(runErrCh)
+	}
+
+	startHealth(healthSrvErrCh)
 	select {
 	case err := <-runErrCh:
 		log.Printf("Minio server error (%s)", err)
 		os.Exit(1)
 	case err := <-healthSrvErrCh:
 		log.Printf("Healthcheck server error (%s)", err)
-		os.Exit(1)
-	}
-}
-
-func checkError(err error) {
-	if err != nil {
-		fmt.Println("Fatal error ", err.Error())
 		os.Exit(1)
 	}
 }
