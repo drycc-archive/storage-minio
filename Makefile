@@ -21,10 +21,10 @@ TEST_PACKAGES := $(shell ${DEV_ENV_CMD} glide nv)
 all: build docker-build docker-push
 
 bootstrap:
-	${DEV_ENV_CMD} glide install
+	${DEV_ENV_CMD} dep ensure
 
-glideup:
-	${DEV_ENV_CMD} glide up
+depup:
+	${DEV_ENV_CMD} dep ensure -update
 
 build:
 	mkdir -p ${BINDIR}

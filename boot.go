@@ -59,7 +59,7 @@ func readConfig(filename string) string {
 	return strings.TrimSpace(string(value))
 }
 
-func newMinioClient(host, port, accessKey, accessSecret string, insecure bool) (minio.CloudStorageClient, error) {
+func newMinioClient(host, port, accessKey, accessSecret string, insecure bool) (*minio.Client, error) {
 	return minio.New(
 		fmt.Sprintf("%s:%s", host, port),
 		accessKey,
