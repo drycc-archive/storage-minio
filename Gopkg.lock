@@ -3,11 +3,11 @@
 
 [[projects]]
   branch = "master"
-  digest = "1:4a62cb034d3d0149f97a4027b48d5d1de442da282b703f02c7b220f055de9a95"
+  digest = "1:98a88faa8f6b1ae503d2ecff367b92957c0a4402490f1f0b407908a1233eebaf"
   name = "github.com/drycc/pkg"
   packages = ["utils"]
   pruneopts = "UT"
-  revision = "e2d82b7b99c89e18ca8e5533e1b70ff56fc9da77"
+  revision = "bcdffff0fcb382671962f8920ad034b5027a48e6"
 
 [[projects]]
   digest = "1:6f9339c912bbdda81302633ad7e99a28dfa5a639c864061f1929510a9a64aa74"
@@ -66,7 +66,7 @@
 
 [[projects]]
   branch = "master"
-  digest = "1:1233650d9318d56548b45a103021bbff007c555f97007a531d9172339c25e5bb"
+  digest = "1:06231d1ce743be1bd5a9a56afbaca3d66b4c7846f958a949b965dbefe8e5fb48"
   name = "golang.org/x/crypto"
   packages = [
     "argon2",
@@ -74,7 +74,7 @@
     "ssh/terminal",
   ]
   pruneopts = "UT"
-  revision = "057139ce5d2bdbe6fe73c53679e24e9cf007f637"
+  revision = "c7b33c32a30bae9ba07d37eb4d86f1f8b0f644fb"
 
 [[projects]]
   branch = "master"

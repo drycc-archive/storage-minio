@@ -2,6 +2,7 @@
 # Drycc Minio v2
 
 [![Build Status](https://travis-ci.org/drycc/minio.svg?branch=master)](https://travis-ci.org/drycc/minio)
+[![codecov](https://codecov.io/gh/drycc/minio/branch/master/graph/badge.svg)](https://codecov.io/gh/drycc/minio)
 [![Go Report Card](http://goreportcard.com/badge/drycc/minio)](http://goreportcard.com/report/drycc/minio)
 [![Docker Repository on Quay](https://quay.io/repository/drycc/minio/status "Docker Repository on Quay")](https://quay.io/repository/drycc/minio)
 
