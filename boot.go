@@ -19,7 +19,7 @@ import (
 )
 
 const (
-	localMinioInsecure = true
+	localMinioInsecure = false
 	defaultMinioHost   = "localhost"
 	defaultMinioPort   = "9000"
 )
