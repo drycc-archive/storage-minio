@@ -1,6 +1,6 @@
-FROM minio/mc:RELEASE.2019-05-23T01-33-27Z as mc
+FROM minio/mc:RELEASE.2019-09-24T01-36-20Z as mc
 
-FROM minio/minio:RELEASE.2019-05-23T00-29-34Z
+FROM minio/minio:RELEASE.2018-11-06T01-01-02Z
 
 COPY --from=mc /usr/bin/mc /usr/bin/mc
 
