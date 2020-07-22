@@ -2,7 +2,7 @@ SHORT_NAME := minio
 
 # dockerized development environment variables
 REPO_PATH := github.com/drycc/${SHORT_NAME}
-DEV_ENV_IMAGE := quay.io/drycc/go-dev:v0.22.0
+DEV_ENV_IMAGE := golang:1.14
 DEV_ENV_WORK_DIR := /go/src/${REPO_PATH}
 DEV_ENV_PREFIX := docker run --env CGO_ENABLED=0 --rm -v ${CURDIR}:${DEV_ENV_WORK_DIR} -w ${DEV_ENV_WORK_DIR}
 DEV_ENV_CMD := ${DEV_ENV_PREFIX} ${DEV_ENV_IMAGE}
@@ -16,22 +16,17 @@ IMAGE_PREFIX ?= drycc
 
 include versioning.mk
 
-TEST_PACKAGES := $(shell ${DEV_ENV_CMD} glide nv)
-
 all: build docker-build docker-push
 
 bootstrap:
-	${DEV_ENV_CMD} dep ensure
-
-depup:
-	${DEV_ENV_CMD} dep ensure -update
+	${DEV_ENV_CMD} go mod vendor
 
 build:
 	mkdir -p ${BINDIR}
 	${DEV_ENV_CMD} go build -ldflags '-s' -o $(BINDIR)/boot boot.go || exit 1
 
 test:
-	${DEV_ENV_CMD} go test ${TEST_PACKAGES}
+	${DEV_ENV_CMD} go test ./...
 
 test-cover:
 	${DEV_ENV_CMD} test-cover.sh
@@ -43,4 +38,4 @@ docker-build: build
 
 deploy: build docker-build docker-push
 
-.PHONY: all bootstrap glideup build test docker-build deploy
+.PHONY: all bootstrap build test docker-build deploy
