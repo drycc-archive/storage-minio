@@ -15,7 +15,8 @@ import (
 
 	"github.com/drycc/minio/src/healthsrv"
 	"github.com/drycc/pkg/utils"
-	minio "github.com/minio/minio-go"
+	"github.com/minio/minio-go/v7"
+    "github.com/minio/minio-go/v7/pkg/credentials"
 )
 
 const (
@@ -60,12 +61,10 @@ func readConfig(filename string) string {
 }
 
 func newMinioClient(host, port, accessKey, accessSecret string, insecure bool) (*minio.Client, error) {
-	return minio.New(
-		fmt.Sprintf("%s:%s", host, port),
-		accessKey,
-		accessSecret,
-		insecure,
-	)
+	return minio.New(fmt.Sprintf("%s:%s", host, port), &minio.Options {
+        Creds: credentials.NewStaticV4(accessKey, accessSecret, ""),
+        Secure: insecure,
+	})
 }
 
 func startServer(runErrCh chan error) {

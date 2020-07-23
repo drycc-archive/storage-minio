@@ -1,13 +1,14 @@
 package healthsrv
 
 import (
+    "context"
 	"encoding/json"
 	"fmt"
 	"log"
 	"net/http"
 
 	"github.com/drycc/minio/src/storage"
-	minio "github.com/minio/minio-go"
+	"github.com/minio/minio-go/v7"
 )
 
 type healthZResp struct {
@@ -16,7 +17,7 @@ type healthZResp struct {
 
 func healthZHandler(bucketLister storage.BucketLister) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		buckets, err := bucketLister.ListBuckets()
+		buckets, err := bucketLister.ListBuckets(context.Background())
 		if err != nil {
 			str := fmt.Sprintf("Probe error: listing buckets (%s)", err)
 			log.Println(str)

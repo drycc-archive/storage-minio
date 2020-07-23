@@ -2,7 +2,7 @@ package healthsrv
 
 import (
 	"fmt"
-	minio "github.com/minio/minio-go"
+	"github.com/minio/minio-go/v7"
 	"net/http"
 )
 

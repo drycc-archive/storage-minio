@@ -9,7 +9,7 @@ import (
 	"time"
 
 	"github.com/drycc/minio/src/storage"
-	minio "github.com/minio/minio-go"
+    "github.com/minio/minio-go/v7"
 )
 
 func TestHealthzHandler(t *testing.T) {
