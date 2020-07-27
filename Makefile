@@ -2,7 +2,7 @@ SHORT_NAME := minio
 
 # dockerized development environment variables
 REPO_PATH := github.com/drycc/${SHORT_NAME}
-DEV_ENV_IMAGE := golang:1.14
+DEV_ENV_IMAGE := drycc/go-dev
 DEV_ENV_WORK_DIR := /go/src/${REPO_PATH}
 DEV_ENV_PREFIX := docker run --env CGO_ENABLED=0 --rm -v ${CURDIR}:${DEV_ENV_WORK_DIR} -w ${DEV_ENV_WORK_DIR}
 DEV_ENV_CMD := ${DEV_ENV_PREFIX} ${DEV_ENV_IMAGE}
@@ -25,8 +25,11 @@ build:
 	mkdir -p ${BINDIR}
 	${DEV_ENV_CMD} go build -ldflags '-s' -o $(BINDIR)/boot boot.go || exit 1
 
-test:
+test: test-style
 	${DEV_ENV_CMD} go test ./...
+
+test-style:
+	${DEV_ENV_CMD} lint --deadline
 
 test-cover:
 	${DEV_ENV_CMD} test-cover.sh

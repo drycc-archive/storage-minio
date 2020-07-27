@@ -7,8 +7,8 @@ import (
 	"io/ioutil"
 	"log"
 	"os"
-	"regexp"
 	"os/exec"
+	"regexp"
 	"strconv"
 	"strings"
 	"text/template"
@@ -16,7 +16,7 @@ import (
 	"github.com/drycc/minio/src/healthsrv"
 	"github.com/drycc/pkg/utils"
 	"github.com/minio/minio-go/v7"
-    "github.com/minio/minio-go/v7/pkg/credentials"
+	"github.com/minio/minio-go/v7/pkg/credentials"
 )
 
 const (
@@ -30,8 +30,6 @@ var (
 	errMinioExited     = errors.New("Minio server exited with unknown status")
 )
 
-const configdir = "/home/minio/.minio/"
-
 func run(cmd string) error {
 	var cmdBuf bytes.Buffer
 	tmpl := template.Must(template.New("cmd").Parse(cmd))
@@ -40,8 +38,7 @@ func run(cmd string) error {
 	}
 	cmdString := cmdBuf.String()
 	fmt.Println(cmdString)
-	var cmdl *exec.Cmd
-	cmdl = exec.Command("sh", "-c", cmdString)
+	var cmdl = exec.Command("sh", "-c", cmdString)
 	if _, _, err := utils.RunCommandWithStdoutStderr(cmdl); err != nil {
 		return err
 	}
@@ -61,9 +58,9 @@ func readConfig(filename string) string {
 }
 
 func newMinioClient(host, port, accessKey, accessSecret string, insecure bool) (*minio.Client, error) {
-	return minio.New(fmt.Sprintf("%s:%s", host, port), &minio.Options {
-        Creds: credentials.NewStaticV4(accessKey, accessSecret, ""),
-        Secure: insecure,
+	return minio.New(fmt.Sprintf("%s:%s", host, port), &minio.Options{
+		Creds:  credentials.NewStaticV4(accessKey, accessSecret, ""),
+		Secure: insecure,
 	})
 }
 
@@ -71,10 +68,10 @@ func startServer(runErrCh chan error) {
 
 	key, access := readSecrets()
 
-        err := os.Setenv("MINIO_ACCESS_KEY", key)
-        checkError(err)
-        err = os.Setenv("MINIO_SECRET_KEY", access)
-        checkError(err)
+	err := os.Setenv("MINIO_ACCESS_KEY", key)
+	checkError(err)
+	err = os.Setenv("MINIO_SECRET_KEY", access)
+	checkError(err)
 
 	os.Args[0] = "minio"
 	mc := strings.Join(os.Args, " ")

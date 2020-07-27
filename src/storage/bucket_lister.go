@@ -1,7 +1,7 @@
 package storage
 
 import (
-    "context"
+	"context"
 	"github.com/minio/minio-go/v7"
 )
 
