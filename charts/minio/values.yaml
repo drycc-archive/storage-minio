@@ -2,5 +2,11 @@ org: "drycc"
 pull_policy: "Always"
 docker_tag: "canary"
 docker_registry: ""
+persistence:
+  enabled: false
+  accessMode: ReadWriteOnce
+  size: 5Gi
+  storageClass: ""
+  volumeName: ""
 global:
   storage: minio

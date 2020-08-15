@@ -48,7 +48,7 @@ spec:
           args:
             {{- if eq .Values.global.storage "minio" }}
             - "server"
-            - "/home/minio/"
+            - "/data"
             {{- else}}
             - "gateway"
             - "{{.Values.global.storage}}"
@@ -56,7 +56,16 @@ spec:
           volumeMounts:
             - name: objectstore-creds
               mountPath: /var/run/secrets/drycc/objectstore/creds
+          {{- if .Values.persistence.enabled }}
+            - name: minio-data
+              mountPath: /data
+          {{- end }}
       volumes:
         - name: objectstore-creds
           secret:
             secretName: objectstorage-keyfile
+        {{- if .Values.persistence.enabled }}
+        - name: minio-data
+          persistentVolumeClaim:
+            claimName: drycc-minio
+        {{- end }}
