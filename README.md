@@ -1,8 +1,8 @@
 
 # Drycc Minio v2
 
-[![Build Status](https://travis-ci.org/drycc/minio.svg?branch=master)](https://travis-ci.org/drycc/minio)
-[![codecov](https://codecov.io/gh/drycc/minio/branch/master/graph/badge.svg)](https://codecov.io/gh/drycc/minio)
+[![Build Status](https://travis-ci.org/drycc/minio.svg?branch=main)](https://travis-ci.org/drycc/minio)
+[![codecov](https://codecov.io/gh/drycc/minio/branch/main/graph/badge.svg)](https://codecov.io/gh/drycc/minio)
 [![Go Report Card](http://goreportcard.com/badge/drycc/minio)](http://goreportcard.com/report/drycc/minio)
 
 Drycc (pronounced DAY-iss) Workflow is an open source Platform as a Service (PaaS) that adds a developer-friendly layer to any [Kubernetes](http://kubernetes.io) cluster, making it easy to deploy and manage applications on your own servers.
@@ -15,7 +15,7 @@ We welcome your input! If you have feedback, please submit an [issue][issues]. I
 
 The Drycc minio component provides an [S3 API][s3-api] compatible object storage server, based on [Minio](http://minio.io), that can be run on Kubernetes. It's intended for use within the [Drycc v2 platform][drycc-docs] as an object storage server, but it's flexible enough to be run as a standalone pod on any Kubernetes cluster.
 
-Note that in the default [Helm chart for the Drycc platform](https://github.com/drycc/charts/tree/master/drycc-dev), this component is used as a storage location for the following components:
+Note that in the default [Helm chart for the Drycc platform](https://github.com/drycc/charts/tree/main/drycc-dev), this component is used as a storage location for the following components:
 
 - [drycc/postgres](https://github.com/drycc/postgres)
 - [drycc/registry](https://github.com/drycc/registry)
@@ -60,7 +60,7 @@ The [end-to-end tests](https://github.com/drycc/workflow-e2e) repository has our
 
 ## Running End-to-End Tests
 
-Please see [README.md](https://github.com/drycc/workflow-e2e/blob/master/README.md) on the end-to-end tests reposotory for instructions on how to set up your testing environment and run the tests.
+Please see [README.md](https://github.com/drycc/workflow-e2e/blob/main/README.md) on the end-to-end tests reposotory for instructions on how to set up your testing environment and run the tests.
 
 ## Dogfooding
 
