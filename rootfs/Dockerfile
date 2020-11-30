@@ -1,8 +1,9 @@
+FROM minio/mc:latest as mc
+
+
 FROM minio/minio:RELEASE.2020-07-24T22-43-05Z
 
-RUN wget https://dl.min.io/client/mc/release/linux-amd64/mc -O /bin/mc \
-  && chmod +x /bin/mc
-
 COPY . /
+COPY --from=mc /usr/bin/mc /bin/mc
 
 ENTRYPOINT ["/bin/boot"]
