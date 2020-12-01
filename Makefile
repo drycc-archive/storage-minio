@@ -1,4 +1,5 @@
 SHORT_NAME := minio
+PLATFORM ?= linux/amd64,linux/arm64
 
 # dockerized development environment variables
 REPO_PATH := github.com/drycc/${SHORT_NAME}
@@ -34,10 +35,13 @@ test-style:
 test-cover:
 	${DEV_ENV_CMD} test-cover.sh
 
-docker-build: build
+docker-build:
 	# build the main image
-	docker build ${DOCKER_BUILD_FLAGS} -t ${IMAGE} rootfs
+	docker build ${DOCKER_BUILD_FLAGS} -t ${IMAGE} .
 	docker tag ${IMAGE} ${MUTABLE_IMAGE}
+
+docker-buildx:
+	docker buildx build --platform ${PLATFORM} ${DOCKER_BUILD_FLAGS} -t ${IMAGE} . --push
 
 deploy: build docker-build docker-push
 
