@@ -21,7 +21,7 @@ spec:
       serviceAccount: drycc-minio
       containers:
         - name: drycc-minio
-          image: {{.Values.image_registry}}{{.Values.org}}/minio:{{.Values.image_tag}}
+          image: {{.Values.image_registry}}/{{.Values.org}}/minio:{{.Values.image_tag}}
           imagePullPolicy: {{.Values.image_pull_policy}}
           env:
             - name: STORAGE
