@@ -2,7 +2,7 @@ sudo: required
 language: go
 services:
   - docker
-script: make bootstrap build test-cover
+script: DEV_REGISTRY="docker.io" make bootstrap build test-cover
 tifications:
   slack:
     rooms:
