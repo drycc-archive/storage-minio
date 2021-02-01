@@ -9,7 +9,7 @@ RUN export GO111MODULE=on \
   && CGO_ENABLED=0 go build -ldflags '-s' -o /usr/local/bin/boot boot.go
 
 
-FROM docker.io/minio/minio:RELEASE.2020-07-24T22-43-05Z
+FROM docker.io/minio/minio:latest
 
 COPY rootfs /
 COPY --from=mc /usr/bin/mc /bin/mc
