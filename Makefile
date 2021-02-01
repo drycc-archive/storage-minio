@@ -10,7 +10,6 @@ DEV_ENV_CMD := ${DEV_ENV_PREFIX} ${DEV_ENV_IMAGE}
 
 LDFLAGS := "-s -X main.version=${VERSION}"
 BINDIR := ./rootfs/bin
-DEV_REGISTRY ?= 
 DRYCC_REGISTRY ?= ${DEV_REGISTRY}
 
 IMAGE_PREFIX ?= drycc
