@@ -1,7 +1,7 @@
 
 # Drycc Minio v2
 
-[![Build Status](https://travis-ci.org/drycc/minio.svg?branch=main)](https://travis-ci.org/drycc/minio)
+[![Build Status](https://drone.drycc.cc/api/badges/drycc/minio/status.svg)](https://drone.drycc.cc/drycc/minio)
 [![codecov](https://codecov.io/gh/drycc/minio/branch/main/graph/badge.svg)](https://codecov.io/gh/drycc/minio)
 [![Go Report Card](http://goreportcard.com/badge/drycc/minio)](http://goreportcard.com/report/drycc/minio)
 
