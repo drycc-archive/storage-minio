@@ -1,6 +1,6 @@
 name: minio
 home: https://github.com/drycc/minio
-version:  <Will be populated by the ci before publishing the chart>
+version:  v1.0.0
 description: Minio Object Storage in Kubernetes, used by Drycc Workflow.
 maintainers:
   - name: Drycc Team
