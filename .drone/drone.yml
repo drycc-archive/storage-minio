@@ -22,18 +22,21 @@ steps:
     - push
     - tag
     - pull_request
+  volumes:
+  - name: image_registries
+    path: /etc/containers/registries.conf
 
 - name: codecov
   image: docker.io/drycc/go-dev
   pull: if-not-exists
   commands:
-    - curl -s https://codecov.io/bash | bash
+  - curl -s https://codecov.io/bash | bash
   environment:
     CODECOV_TOKEN:
       from_secret: codecov_token
   when:
     status:
-      - success
+    - success
 
 - name: publish
   image: docker.io/drycc/go-dev
@@ -56,12 +59,20 @@ steps:
     event:
     - push
     - tag
+  volumes:
+  - name: image_registries
+    path: /etc/containers/registries.conf
 
 trigger:
   event:
   - push
   - tag
   - pull_request
+
+volumes:
+- name: image_registries
+  host:
+    path: /etc/containers/registries.conf
 
 ---
 kind: pipeline
@@ -90,11 +101,19 @@ steps:
       from_secret: docker_username
     DOCKER_PASSWORD:
       from_secret: docker_password
+  volumes:
+  - name: image_registries
+    path: /etc/containers/registries.conf
 
 trigger:
   event:
   - push
   - tag
+
+volumes:
+- name: image_registries
+  host:
+    path: /etc/containers/registries.conf
 
 ---
 kind: pipeline
