@@ -68,9 +68,9 @@ func startServer(runErrCh chan error) {
 
 	key, access := readSecrets()
 
-	err := os.Setenv("MINIO_ACCESS_KEY", key)
+	err := os.Setenv("MINIO_ROOT_USER", key)
 	checkError(err)
-	err = os.Setenv("MINIO_SECRET_KEY", access)
+	err = os.Setenv("MINIO_ROOT_PASSWORD", access)
 	checkError(err)
 
 	os.Args[0] = "minio"
