@@ -5,7 +5,7 @@ metadata:
   labels:
     heritage: drycc
   annotations:
-    component.drycc.cc/version: {{ .Values.image_tag }}
+    component.drycc.cc/version: {{ .Values.imageTag }}
 spec:
   replicas: 1
   strategy:
@@ -21,8 +21,8 @@ spec:
       serviceAccount: drycc-minio
       containers:
         - name: drycc-minio
-          image: {{.Values.image_registry}}/{{.Values.image_org}}/minio:{{.Values.image_tag}}
-          imagePullPolicy: {{.Values.image_pull_policy}}
+          image: {{.Values.imageRegistry}}/{{.Values.imageOrg}}/minio:{{.Values.imageTag}}
+          imagePullPolicy: {{.Values.imagePullPolicy}}
           env:
             - name: STORAGE
               value: "{{.Values.global.storage}}"

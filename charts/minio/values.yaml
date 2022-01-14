@@ -1,7 +1,7 @@
-image_org: "drycc"
-image_pull_policy: "Always"
-image_tag: "canary"
-image_registry: "docker.io"
+imageOrg: "drycc"
+imagePullPolicy: "Always"
+imageTag: "canary"
+imageRegistry: "docker.io"
 persistence:
   enabled: false
   accessMode: ReadWriteOnce
