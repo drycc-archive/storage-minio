@@ -1,18 +1,39 @@
-FROM docker.io/minio/mc:latest as mc
-
-
 FROM docker.io/drycc/go-dev:latest AS build
 ARG LDFLAGS
 ADD . /app
 RUN export GO111MODULE=on \
   && cd /app \
-  && CGO_ENABLED=0 go build -ldflags '-s' -o /usr/local/bin/boot boot.go
+  && CGO_ENABLED=0 init-stack go build -ldflags '-s' -o /usr/local/bin/boot boot.go
 
+FROM docker.io/drycc/base:bullseye
 
-FROM docker.io/minio/minio:latest
+RUN adduser --system \
+   --shell /bin/bash \
+   --disabled-password \
+   --home /data \
+   --group \
+   drycc
 
-COPY rootfs /
-COPY --from=mc /usr/bin/mc /bin/mc
 COPY --from=build /usr/local/bin/boot /bin/boot
+ENV MC_VERSION="RELEASE.2022-02-26T03-58-31Z" \
+  MINIO_VERSION="RELEASE.2022-02-26T02-54-46Z"
 
-ENTRYPOINT ["/bin/boot"]
+RUN install-stack mc $MC_VERSION \
+  && install-stack minio $MINIO_VERSION \
+  && rm -rf \
+      /usr/share/doc \
+      /usr/share/man \
+      /usr/share/info \
+      /usr/share/locale \
+      /var/lib/apt/lists/* \
+      /var/log/* \
+      /var/cache/debconf/* \
+      /etc/systemd \
+      /lib/lsb \
+      /lib/udev \
+      /usr/lib/`echo $(uname -m)`-linux-gnu/gconv/IBM* \
+      /usr/lib/`echo $(uname -m)`-linux-gnu/gconv/EBC* \
+  && mkdir -p /usr/share/man/man{1..8}
+
+USER drycc
+ENTRYPOINT ["init-stack", "/bin/boot"]
