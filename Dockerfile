@@ -1,8 +1,8 @@
 FROM docker.io/drycc/go-dev:latest AS build
 ARG LDFLAGS
-ADD . /app
+ADD . /workspace
 RUN export GO111MODULE=on \
-  && cd /app \
+  && cd /workspace \
   && CGO_ENABLED=0 init-stack go build -ldflags '-s' -o /usr/local/bin/boot boot.go
 
 FROM docker.io/drycc/base:bullseye
