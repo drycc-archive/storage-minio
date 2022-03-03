@@ -43,12 +43,12 @@ spec:
               port: 8082
             initialDelaySeconds: 30
             timeoutSeconds: 1
-          command:
-            - boot
           args:
             {{- if eq .Values.global.storage "minio" }}
             - "server"
             - "/data"
+            - "--console-address"
+            - ":9001"
             {{- else}}
             - "gateway"
             - "{{.Values.global.storage}}"
@@ -60,6 +60,10 @@ spec:
             - name: minio-data
               mountPath: /data
           {{- end }}
+      securityContext:
+        fsGroup: 1001
+        runAsGroup: 1001
+        runAsUser: 1001
       volumes:
         - name: objectstore-creds
           secret:

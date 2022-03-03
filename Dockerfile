@@ -7,12 +7,12 @@ RUN export GO111MODULE=on \
 
 FROM docker.io/drycc/base:bullseye
 
-RUN adduser --system \
-   --shell /bin/bash \
-   --disabled-password \
-   --home /data \
-   --group \
-   drycc
+ARG DRYCC_UID=1001
+ARG DRYCC_GID=1001
+ARG DRYCC_HOME_DIR=/data
+
+RUN groupadd drycc --gid ${DRYCC_GID} \
+  && useradd drycc -u ${DRYCC_UID} -g ${DRYCC_GID} -s /bin/bash -m -d ${DRYCC_HOME_DIR}
 
 COPY --from=build /usr/local/bin/boot /bin/boot
 ENV MC_VERSION="2022.02.26.03.58.31" \

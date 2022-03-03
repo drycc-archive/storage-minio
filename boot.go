@@ -23,11 +23,12 @@ const (
 	localMinioInsecure = false
 	defaultMinioHost   = "localhost"
 	defaultMinioPort   = "9000"
+	defaultMinioExec   = "/opt/drycc/minio/bin/minio"
 )
 
 var (
 	errHealthSrvExited = errors.New("healthcheck server exited with unknown status")
-	errMinioExited     = errors.New("Minio server exited with unknown status")
+	errMinioExited     = errors.New("minio server exited with unknown status")
 )
 
 func run(cmd string) error {
@@ -38,7 +39,7 @@ func run(cmd string) error {
 	}
 	cmdString := cmdBuf.String()
 	fmt.Println(cmdString)
-	var cmdl = exec.Command("sh", "-c", cmdString)
+	var cmdl = exec.Command("bash", "-c", cmdString)
 	if _, _, err := utils.RunCommandWithStdoutStderr(cmdl); err != nil {
 		return err
 	}
@@ -73,7 +74,7 @@ func startServer(runErrCh chan error) {
 	err = os.Setenv("MINIO_ROOT_PASSWORD", access)
 	checkError(err)
 
-	os.Args[0] = "minio"
+	os.Args[0] = defaultMinioExec
 	mc := strings.Join(os.Args, " ")
 	log.Printf("starting Minio server")
 	go func() {
@@ -105,7 +106,7 @@ func startGateway(runErrCh chan error) {
 		os.Args = append(os.Args, endpoint)
 	}
 
-	os.Args[0] = "minio"
+	os.Args[0] = defaultMinioExec
 	mc := strings.Join(os.Args, " ")
 	log.Printf("starting Minio gateway")
 	go func() {
@@ -175,10 +176,10 @@ func main() {
 	startHealth(healthSrvErrCh)
 	select {
 	case err := <-runErrCh:
-		log.Printf("Minio server error (%s)", err)
+		log.Printf("minio server error (%s)", err)
 		os.Exit(1)
 	case err := <-healthSrvErrCh:
-		log.Printf("Healthcheck server error (%s)", err)
+		log.Printf("healthcheck server error (%s)", err)
 		os.Exit(1)
 	}
 }
