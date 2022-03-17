@@ -18,9 +18,7 @@ spec:
       labels:
         app: drycc-minio
     spec:
-      {{- if .Values.global.common }}
-      {{- include "common.affinity" (dict "key" "app" "values" (list "drycc-minio")) | indent 6 }}
-      {{- end }}
+      {{- include "common.affinities.nodes.soft" (dict "key" "app" "values" (list "drycc-minio")) | indent 6 }}
       serviceAccount: drycc-minio
       containers:
         - name: drycc-minio
