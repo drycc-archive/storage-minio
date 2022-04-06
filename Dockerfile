@@ -12,8 +12,8 @@ COPY --from=build /usr/local/bin/boot /bin/boot
 ENV DRYCC_UID=1001 \
   DRYCC_GID=1001 \
   DRYCC_HOME_DIR=/data \
-  MC_VERSION="2022.02.26.03.58.31" \
-  MINIO_VERSION="2022.02.26.02.54.46"
+  MC_VERSION="2022.04.01.23.44.48" \
+  MINIO_VERSION="2022.04.01.03.41.39"
 
 
 RUN groupadd drycc --gid ${DRYCC_GID} \
