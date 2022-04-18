@@ -1,3 +1,4 @@
+{{- if eq .Values.global.minioLocation "on-cluster" }}
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -45,18 +46,13 @@ spec:
             initialDelaySeconds: 30
             timeoutSeconds: 1
           args:
-            {{- if eq .Values.global.storage "minio" }}
             - "server"
             - "/data"
             - "--console-address"
             - ":9001"
-            {{- else}}
-            - "gateway"
-            - "{{.Values.global.storage}}"
-            {{- end}}
           volumeMounts:
-            - name: objectstore-creds
-              mountPath: /var/run/secrets/drycc/objectstore/creds
+            - name: minio-creds
+              mountPath: /var/run/secrets/drycc/minio/creds
           {{- if .Values.persistence.enabled }}
             - name: minio-data
               mountPath: /data
@@ -66,11 +62,12 @@ spec:
         runAsGroup: 1001
         runAsUser: 1001
       volumes:
-        - name: objectstore-creds
+        - name: minio-creds
           secret:
-            secretName: objectstorage-keyfile
+            secretName: minio-creds
         {{- if .Values.persistence.enabled }}
         - name: minio-data
           persistentVolumeClaim:
             claimName: drycc-minio
         {{- end }}
+{{- end }}

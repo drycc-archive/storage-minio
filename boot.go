@@ -8,7 +8,6 @@ import (
 	"log"
 	"os"
 	"os/exec"
-	"regexp"
 	"strconv"
 	"strings"
 	"text/template"
@@ -47,8 +46,8 @@ func run(cmd string) error {
 }
 
 func readSecrets() (string, string) {
-	key := readConfig("/var/run/secrets/drycc/objectstore/creds/accesskey")
-	secret := readConfig("/var/run/secrets/drycc/objectstore/creds/secretkey")
+	key := readConfig("/var/run/secrets/drycc/minio/creds/accesskey")
+	secret := readConfig("/var/run/secrets/drycc/minio/creds/secretkey")
 	return key, secret
 }
 
@@ -85,37 +84,6 @@ func startServer(runErrCh chan error) {
 		}
 	}()
 
-}
-
-func startGateway(runErrCh chan error) {
-	key, access := readSecrets()
-	err := os.Setenv("MINIO_ACCESS_KEY", key)
-	checkError(err)
-	err = os.Setenv("MINIO_SECRET_KEY", access)
-	checkError(err)
-
-	storage := os.Args[2]
-	if storage == "gcs" {
-		projectid := readConfig("/var/run/secrets/drycc/objectstore/creds/projectid")
-		os.Args = append(os.Args, projectid)
-		err = os.Setenv("GOOGLE_APPLICATION_CREDENTIALS", "/var/run/secrets/drycc/objectstore/creds/key.json")
-		checkError(err)
-	} else {
-		endpoint := readConfig("/var/run/secrets/drycc/objectstore/creds/endpoint")
-		checkError(err)
-		os.Args = append(os.Args, endpoint)
-	}
-
-	os.Args[0] = defaultMinioExec
-	mc := strings.Join(os.Args, " ")
-	log.Printf("starting Minio gateway")
-	go func() {
-		if err := run(mc); err != nil {
-			runErrCh <- err
-		} else {
-			runErrCh <- errMinioExited
-		}
-	}()
 }
 
 func startHealth(healthSrvErrCh chan error) {
@@ -165,14 +133,7 @@ func checkError(err error) {
 func main() {
 	runErrCh := make(chan error)
 	healthSrvErrCh := make(chan error)
-
-	service := regexp.MustCompile("[ \t]").Split(os.Args[1], -1)[0]
-	if service == "server" {
-		startServer(runErrCh)
-	} else if service == "gateway" {
-		startGateway(runErrCh)
-	}
-
+	startServer(runErrCh)
 	startHealth(healthSrvErrCh)
 	select {
 	case err := <-runErrCh:
