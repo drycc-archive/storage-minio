@@ -4,7 +4,6 @@ import (
 	"bytes"
 	"errors"
 	"fmt"
-	"io/ioutil"
 	"log"
 	"os"
 	"os/exec"
@@ -45,18 +44,6 @@ func run(cmd string) error {
 	return nil
 }
 
-func readSecrets() (string, string) {
-	key := readConfig("/var/run/secrets/drycc/minio/creds/accesskey")
-	secret := readConfig("/var/run/secrets/drycc/minio/creds/secretkey")
-	return key, secret
-}
-
-func readConfig(filename string) string {
-	value, err := ioutil.ReadFile(filename)
-	checkError(err)
-	return strings.TrimSpace(string(value))
-}
-
 func newMinioClient(host, port, accessKey, accessSecret string, insecure bool) (*minio.Client, error) {
 	return minio.New(fmt.Sprintf("%s:%s", host, port), &minio.Options{
 		Creds:  credentials.NewStaticV4(accessKey, accessSecret, ""),
@@ -65,12 +52,9 @@ func newMinioClient(host, port, accessKey, accessSecret string, insecure bool) (
 }
 
 func startServer(runErrCh chan error) {
-
-	key, access := readSecrets()
-
-	err := os.Setenv("MINIO_ROOT_USER", key)
+	err := os.Setenv("MINIO_ROOT_USER", os.Getenv("DRYCC_MINIO_ACCESSKEY"))
 	checkError(err)
-	err = os.Setenv("MINIO_ROOT_PASSWORD", access)
+	err = os.Setenv("MINIO_ROOT_PASSWORD", os.Getenv("DRYCC_MINIO_SECRETKEY"))
 	checkError(err)
 
 	os.Args[0] = defaultMinioExec
@@ -83,11 +67,11 @@ func startServer(runErrCh chan error) {
 			runErrCh <- errMinioExited
 		}
 	}()
-
 }
 
 func startHealth(healthSrvErrCh chan error) {
-	key, access := readSecrets()
+	accesskey := os.Getenv("DRYCC_MINIO_ACCESSKEY")
+	secretkey := os.Getenv("DRYCC_MINIO_SECRETKEY")
 
 	minioHost := os.Getenv("MINIO_HOST")
 	if minioHost == "" {
@@ -97,7 +81,7 @@ func startHealth(healthSrvErrCh chan error) {
 	if minioPort == "" {
 		minioPort = defaultMinioPort
 	}
-	minioClient, err := newMinioClient(minioHost, minioPort, key, access, localMinioInsecure)
+	minioClient, err := newMinioClient(minioHost, minioPort, accesskey, secretkey, localMinioInsecure)
 	if err != nil {
 		log.Printf("Error creating minio client (%s)", err)
 		os.Exit(1)
