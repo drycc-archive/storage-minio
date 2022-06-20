@@ -1,0 +1,109 @@
+{{- if eq .Values.global.minioLocation "on-cluster" }}
+{{- $zoneCount := int .Values.zones }}
+{{- $driveCount := int .Values.drives }}
+{{- $replicaCount := int .Values.replicas }}
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: drycc-minio
+  labels:
+    heritage: drycc
+  annotations:
+    component.drycc.cc/version: {{ .Values.imageTag }}
+spec:
+  serviceName: drycc-minio
+  replicas: {{ mul $zoneCount $replicaCount }}
+  updateStrategy:
+    type: RollingUpdate
+  podManagementPolicy: Parallel
+  selector:
+    matchLabels:
+      app: drycc-minio
+  template:
+    metadata:
+      labels:
+        app: drycc-minio
+    spec:
+      {{- include "common.affinities.pods.soft" (dict "key" "app" "values" (list "drycc-minio")) | indent 6 }}
+      serviceAccount: drycc-minio
+      containers:
+        - name: drycc-minio
+          image: {{.Values.imageRegistry}}/{{.Values.imageOrg}}/minio:{{.Values.imageTag}}
+          imagePullPolicy: {{.Values.imagePullPolicy}}
+          env:
+            - name: STORAGE
+              value: "{{.Values.global.storage}}"
+            - name: HEALTH_SERVER_PORT
+              value: "8082"
+            - name: "DRYCC_MINIO_ACCESSKEY"
+              valueFrom:
+                secretKeyRef:
+                  name: minio-creds
+                  key: accesskey
+            - name: "DRYCC_MINIO_SECRETKEY"
+              valueFrom:
+                secretKeyRef:
+                  name: minio-creds
+                  key: secretkey
+          ports:
+            - containerPort: 9000
+            - containerPort: 8082
+          livenessProbe:
+            httpGet:
+              path: /healthz
+              port: 8082
+            initialDelaySeconds: 90
+            periodSeconds: 5
+            timeoutSeconds: 1
+            successThreshold: 1
+            failureThreshold: 5
+          readinessProbe:
+            tcpSocket:
+              port: 9000
+            initialDelaySeconds: 5
+            periodSeconds: 5
+            timeoutSeconds: 1
+            successThreshold: 1
+            failureThreshold: 5
+          args:
+            - "server"
+            {{- $clusters := list }}
+            {{- range $i := until $zoneCount }}
+            {{- $factor := mul $i $replicaCount }}
+            {{- $endIndex := sub (add $factor $replicaCount) 1 }}
+            {{- $beginIndex := mul $i $replicaCount }}
+            - "{{(printf "http://drycc-minio-{%d...%d}.drycc-minio.%s.svc.%s:9000/data/{0...%d}" $beginIndex $endIndex $.Release.Namespace $.Values.global.clusterDomain (sub $driveCount 1) ) }}"
+            {{- end }}
+            - "--console-address"
+            - ":9001"
+          {{- if .Values.persistence.enabled }}
+          volumeMounts:
+          {{- range $diskId := until $driveCount }}
+            - name: minio-data-{{$diskId}}
+              mountPath: /data/{{$diskId}}
+          {{- end }}
+          {{- end }}
+      securityContext:
+        fsGroup: 1001
+        runAsGroup: 1001
+        runAsUser: 1001
+  {{- if .Values.persistence.enabled }}
+  volumeClaimTemplates:
+  {{- range $diskId := until $driveCount }}
+  - metadata:
+      name: minio-data-{{$diskId}}
+    spec:
+      accessModes: [ "ReadWriteOnce" ]
+      {{- if $.Values.persistence.storageClass }}
+      {{- if (eq "-" $.Values.persistence.storageClass) }}
+      storageClassName: ""
+      {{- else }}
+      storageClassName: "{{ $.Values.persistence.storageClass }}"
+      {{- end }}
+      {{- end }}
+      resources:
+        requests:
+          storage: {{ $.Values.persistence.size | quote }}
+  {{- end }}
+  {{- end }}
+{{- end }}

@@ -10,9 +10,10 @@ metadata:
   labels:
     heritage: drycc
 spec:
+  type: ClusterIP
+  selector:
+    app: drycc-minio
   ports:
     - name: s3
       port: 9000
-  selector:
-    app: drycc-minio
 {{- end }}
