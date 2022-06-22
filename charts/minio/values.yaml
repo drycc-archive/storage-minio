@@ -4,6 +4,23 @@ imageTag: "canary"
 imageRegistry: "registry.drycc.cc"
 
 # The following parameters are configured only when using an on-cluster Minio instance
+nodeAffinityPreset:
+  key: "drycc.cc/node"
+  type: "soft"
+  values:
+  - "true"
+
+podAffinityPreset:
+  key: "security"
+  type: ""
+  values:
+  - "drycc-security"
+
+podAntiAffinityPreset:
+  key: "app"
+  type: "soft"
+  values:
+  - "drycc-minio"
 
 # Minio zone count
 zones: 1
