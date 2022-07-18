@@ -1,11 +1,11 @@
-name: minio
-home: https://github.com/drycc/minio
+name: storage
+home: https://github.com/drycc/storage
 appVersion: v2
 dependencies:
   - name: common
     repository: https://charts.drycc.cc/stable
     version: 1.x.x
-description: Minio Object Storage in Kubernetes, used by Drycc Workflow.
+description: Drycc Storage in Kubernetes, used by Drycc Workflow.
 maintainers:
   - name: Drycc Team
     email: engineering@drycc.com

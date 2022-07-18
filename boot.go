@@ -5,16 +5,22 @@ import (
 	"errors"
 	"fmt"
 	"log"
+	"net"
+	"net/url"
 	"os"
 	"os/exec"
 	"strconv"
 	"strings"
 	"text/template"
+	"time"
 
-	"github.com/drycc/minio/src/healthsrv"
 	"github.com/drycc/pkg/utils"
 	"github.com/minio/minio-go/v7"
 	"github.com/minio/minio-go/v7/pkg/credentials"
+	"golang.org/x/exp/slices"
+
+	"github.com/drycc/storage/src/csi/driver"
+	"github.com/drycc/storage/src/healthsrv"
 )
 
 const (
@@ -22,11 +28,30 @@ const (
 	defaultMinioHost   = "localhost"
 	defaultMinioPort   = "9000"
 	defaultMinioExec   = "/opt/drycc/minio/bin/minio"
+	// Help template for minfs.
+	mainHelpTemplate = `NAME:
+Drycc Storage - A open-source, distributed storage system.
+
+USAGE:
+boot [command] [command options] [arguments...]
+
+VERSION:
+   3.0.1
+
+COMMANDS:
+{{- range $command := .}}
+    {{$command}}
+{{- end}}
+
+COPYRIGHT:
+   Apache License 2.0
+`
 )
 
 var (
-	errHealthSrvExited = errors.New("healthcheck server exited with unknown status")
+	commandList        = []string{"driver", "minio", "pd-ctl", "tikv-ctl", "pd-server", "tikv-server"}
 	errMinioExited     = errors.New("minio server exited with unknown status")
+	errHealthSrvExited = errors.New("healthcheck server exited with unknown status")
 )
 
 func run(cmd string) error {
@@ -52,9 +77,9 @@ func newMinioClient(host, port, accessKey, accessSecret string, insecure bool) (
 }
 
 func startServer(runErrCh chan error) {
-	err := os.Setenv("MINIO_ROOT_USER", os.Getenv("DRYCC_MINIO_ACCESSKEY"))
+	err := os.Setenv("MINIO_ROOT_USER", os.Getenv("DRYCC_STORAGE_ACCESSKEY"))
 	checkError(err)
-	err = os.Setenv("MINIO_ROOT_PASSWORD", os.Getenv("DRYCC_MINIO_SECRETKEY"))
+	err = os.Setenv("MINIO_ROOT_PASSWORD", os.Getenv("DRYCC_STORAGE_SECRETKEY"))
 	checkError(err)
 
 	os.Args[0] = defaultMinioExec
@@ -70,8 +95,8 @@ func startServer(runErrCh chan error) {
 }
 
 func startHealth(healthSrvErrCh chan error) {
-	accesskey := os.Getenv("DRYCC_MINIO_ACCESSKEY")
-	secretkey := os.Getenv("DRYCC_MINIO_SECRETKEY")
+	accesskey := os.Getenv("DRYCC_STORAGE_ACCESSKEY")
+	secretkey := os.Getenv("DRYCC_STORAGE_SECRETKEY")
 
 	minioHost := os.Getenv("MINIO_HOST")
 	if minioHost == "" {
@@ -114,7 +139,28 @@ func checkError(err error) {
 	}
 }
 
-func main() {
+func runDriver() {
+	nodeID := os.Getenv("DRYCC_STORAGE_CSI_NODE_ID")
+	provider := os.Getenv("DRYCC_STORAGE_CSI_PROVIDER")
+	endpoint := os.Getenv("DRYCC_STORAGE_CSI_ENDPOINT")
+	if nodeID == "" {
+		log.Fatal("env DRYCC_STORAGE_CSI_NODE_ID is required.")
+	}
+	if provider == "" {
+		log.Fatal("env DRYCC_STORAGE_CSI_PROVIDER is required.")
+	}
+	if endpoint == "" {
+		log.Fatal("env DRYCC_STORAGE_CSI_ENDPOINT is required.")
+	}
+	driver, err := driver.New(nodeID, provider, endpoint)
+	if err != nil {
+		log.Fatal(err)
+	}
+	driver.Run()
+	os.Exit(0)
+}
+
+func runMinio() {
 	runErrCh := make(chan error)
 	healthSrvErrCh := make(chan error)
 	startServer(runErrCh)
@@ -126,5 +172,81 @@ func main() {
 	case err := <-healthSrvErrCh:
 		log.Printf("healthcheck server error (%s)", err)
 		os.Exit(1)
+	}
+}
+
+func checkConnect(host string, timeout time.Duration) bool {
+	conn, err := net.DialTimeout("tcp", host, timeout*time.Second)
+	if err != nil {
+		fmt.Println("Connecting error:", host, err)
+	}
+	if conn != nil {
+		defer conn.Close()
+		return true
+	}
+	return false
+}
+
+func startPDServer() {
+	endpointsString := os.Getenv("DRYCC_STORAGE_PD_ENDPOINTS")
+	endpoints := strings.Split(endpointsString, ",")
+	for index := range endpoints {
+		if endpoint, err := url.Parse(endpoints[index]); err != nil {
+			log.Fatal(err)
+		} else {
+			if checkConnect(endpoint.Host, 5) {
+				os.Args = append(os.Args, "--join", endpointsString)
+				break
+			}
+		}
+	}
+	runCommand("pd-server")
+}
+
+func runCommand(cmd string) {
+	runErrCh := make(chan error)
+	os.Args[0] = cmd
+	command := strings.Join(os.Args, " ")
+	log.Printf("starting %s server", cmd)
+	go func() {
+		if err := run(command); err != nil {
+			runErrCh <- err
+		} else {
+			runErrCh <- errMinioExited
+		}
+	}()
+	if err := <-runErrCh; err != nil {
+		log.Printf("run %s error (%s)", cmd, err)
+		os.Exit(1)
+	}
+}
+
+func help() {
+	if tpl, err := template.New("help").Parse(mainHelpTemplate); err != nil {
+		log.Fatal(err)
+	} else {
+		tpl.Execute(os.Stdout, commandList)
+	}
+}
+
+func main() {
+	if len(os.Args) == 1 {
+		help()
+	} else {
+		command := os.Args[1]
+		os.Args = append(os.Args[:1], os.Args[1+1:]...)
+		if slices.Contains(commandList, command) {
+			if command == "driver" {
+				runDriver()
+			} else if command == "minio" {
+				runMinio()
+			} else if command == "pd-server" {
+				startPDServer()
+			} else {
+				runCommand(command)
+			}
+		} else {
+			help()
+		}
 	}
 }

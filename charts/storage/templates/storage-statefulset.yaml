@@ -1,52 +1,52 @@
-{{- if eq .Values.global.minioLocation "on-cluster" }}
-{{- $zoneCount := int .Values.zones }}
-{{- $driveCount := int .Values.drives }}
-{{- $replicaCount := int .Values.replicas }}
+{{- if eq .Values.global.storageLocation "on-cluster" }}
+{{- $zoneCount := int .Values.storage.zones }}
+{{- $driveCount := int .Values.storage.drives }}
+{{- $replicaCount := int .Values.storage.replicas }}
 apiVersion: apps/v1
 kind: StatefulSet
 metadata:
-  name: drycc-minio
+  name: drycc-storage
   labels:
     heritage: drycc
   annotations:
     component.drycc.cc/version: {{ .Values.imageTag }}
 spec:
-  serviceName: drycc-minio
+  serviceName: drycc-storage
   replicas: {{ mul $zoneCount $replicaCount }}
   updateStrategy:
     type: RollingUpdate
   podManagementPolicy: Parallel
   selector:
     matchLabels:
-      app: drycc-minio
+      app: drycc-storage
   template:
     metadata:
       labels:
-        app: drycc-minio
+        app: drycc-storage
     spec:
       affinity:
         podAffinity: {{- include "common.affinities.pods" (dict "type" .Values.podAffinityPreset.type "key" .Values.podAffinityPreset.key "values" .Values.podAffinityPreset.values ) | nindent 10 }}
-        podAntiAffinity: {{- include "common.affinities.pods" (dict "type" .Values.podAntiAffinityPreset.type "key" .Values.podAntiAffinityPreset.key "values" .Values.podAntiAffinityPreset.values ) | nindent 10 }}
+        podAntiAffinity: {{- include "common.affinities.pods" (dict "type" .Values.storage.podAntiAffinityPreset.type "key" .Values.storage.podAntiAffinityPreset.key "values" .Values.storage.podAntiAffinityPreset.values ) | nindent 10 }}
         nodeAffinity: {{- include "common.affinities.nodes" (dict "type" .Values.nodeAffinityPreset.type "key" .Values.nodeAffinityPreset.key "values" .Values.nodeAffinityPreset.values ) | nindent 10 }}
-      serviceAccount: drycc-minio
+      serviceAccount: drycc-storage
       containers:
-        - name: drycc-minio
-          image: {{.Values.imageRegistry}}/{{.Values.imageOrg}}/minio:{{.Values.imageTag}}
+        - name: drycc-storage
+          image: {{.Values.imageRegistry}}/{{.Values.imageOrg}}/storage:{{.Values.imageTag}}
           imagePullPolicy: {{.Values.imagePullPolicy}}
           env:
             - name: STORAGE
               value: "{{.Values.global.storage}}"
             - name: HEALTH_SERVER_PORT
               value: "8082"
-            - name: "DRYCC_MINIO_ACCESSKEY"
+            - name: "DRYCC_STORAGE_ACCESSKEY"
               valueFrom:
                 secretKeyRef:
-                  name: minio-creds
+                  name: storage-creds
                   key: accesskey
-            - name: "DRYCC_MINIO_SECRETKEY"
+            - name: "DRYCC_STORAGE_SECRETKEY"
               valueFrom:
                 secretKeyRef:
-                  name: minio-creds
+                  name: storage-creds
                   key: secretkey
           ports:
             - containerPort: 9000
@@ -69,20 +69,21 @@ spec:
             successThreshold: 1
             failureThreshold: 5
           args:
+            - "minio"
             - "server"
             {{- $clusters := list }}
             {{- range $i := until $zoneCount }}
             {{- $factor := mul $i $replicaCount }}
             {{- $endIndex := sub (add $factor $replicaCount) 1 }}
             {{- $beginIndex := mul $i $replicaCount }}
-            - "{{(printf "http://drycc-minio-{%d...%d}.drycc-minio.%s.svc.%s:9000/data/{0...%d}" $beginIndex $endIndex $.Release.Namespace $.Values.global.clusterDomain (sub $driveCount 1) ) }}"
+            - "{{(printf "http://drycc-storage-{%d...%d}.drycc-storage.%s.svc.%s:9000/data/{0...%d}" $beginIndex $endIndex $.Release.Namespace $.Values.global.clusterDomain (sub $driveCount 1) ) }}"
             {{- end }}
             - "--console-address"
             - ":9001"
-          {{- if .Values.persistence.enabled }}
+          {{- if .Values.storage.persistence.enabled }}
           volumeMounts:
           {{- range $diskId := until $driveCount }}
-            - name: minio-data-{{$diskId}}
+            - name: storage-data-{{$diskId}}
               mountPath: /data/{{$diskId}}
           {{- end }}
           {{- end }}
@@ -90,23 +91,23 @@ spec:
         fsGroup: 1001
         runAsGroup: 1001
         runAsUser: 1001
-  {{- if .Values.persistence.enabled }}
+  {{- if .Values.storage.persistence.enabled }}
   volumeClaimTemplates:
   {{- range $diskId := until $driveCount }}
   - metadata:
-      name: minio-data-{{$diskId}}
+      name: storage-data-{{$diskId}}
     spec:
       accessModes: [ "ReadWriteOnce" ]
-      {{- if $.Values.persistence.storageClass }}
-      {{- if (eq "-" $.Values.persistence.storageClass) }}
+      {{- if $.Values.storage.persistence.storageClass }}
+      {{- if (eq "-" $.Values.storage.persistence.storageClass) }}
       storageClassName: ""
       {{- else }}
-      storageClassName: "{{ $.Values.persistence.storageClass }}"
+      storageClassName: "{{ $.Values.storage.persistence.storageClass }}"
       {{- end }}
       {{- end }}
       resources:
         requests:
-          storage: {{ $.Values.persistence.size | quote }}
+          storage: {{ $.Values.storage.persistence.size | quote }}
   {{- end }}
   {{- end }}
 {{- end }}

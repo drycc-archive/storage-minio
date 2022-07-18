@@ -13,13 +13,18 @@ ENV DRYCC_UID=1001 \
   DRYCC_GID=1001 \
   DRYCC_HOME_DIR=/data \
   MC_VERSION="2022.04.01.23.44.48" \
-  MINIO_VERSION="2022.04.01.03.41.39"
+  MINIO_VERSION="2022.04.01.03.41.39" \
+  JUICEFS_VERSION="1.0.0-rc3" \
+  TIKV_VERSION="6.1.0"
 
 
 RUN groupadd drycc --gid ${DRYCC_GID} \
   && useradd drycc -u ${DRYCC_UID} -g ${DRYCC_GID} -s /bin/bash -m -d ${DRYCC_HOME_DIR} \
+  && install-packages fuse \
   && install-stack mc $MC_VERSION \
   && install-stack minio $MINIO_VERSION \
+  && install-stack juicefs $JUICEFS_VERSION \
+  && install-stack tikv $TIKV_VERSION \
   && rm -rf \
       /usr/share/doc \
       /usr/share/man \
@@ -35,5 +40,4 @@ RUN groupadd drycc --gid ${DRYCC_GID} \
       /usr/lib/`echo $(uname -m)`-linux-gnu/gconv/EBC* \
   && mkdir -p /usr/share/man/man{1..8}
 
-USER ${DRYCC_UID}
 ENTRYPOINT ["init-stack", "/bin/boot"]

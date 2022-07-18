@@ -133,9 +133,9 @@ steps:
 - name: generate chart
   commands:
   - IMAGE_TAG=$([ ! -z $DRONE_TAG ] && echo \"${DRONE_TAG:1}\" || echo \"canary\")
-  - sed -i "s/imageTag:\ \"canary\"/imageTag:\ $IMAGE_TAG/g" charts/minio/values.yaml
-  - helm package -u charts/minio --version ${DRONE_TAG:-v1.0.0}
-  - curl -u $CHARTMUSEUM_USERNAME:$CHARTMUSEUM_PASSWORD -F chart=@minio-${DRONE_TAG:-v1.0.0}.tgz "$CHARTMUSEUM_API/api/$([ -z $DRONE_TAG ] && echo testing || echo stable)/charts"
+  - sed -i "s/imageTag:\ \"canary\"/imageTag:\ $IMAGE_TAG/g" charts/storage/values.yaml
+  - helm package -u charts/storage --version ${DRONE_TAG:-v1.0.0}
+  - curl -u $CHARTMUSEUM_USERNAME:$CHARTMUSEUM_PASSWORD -F chart=@storage-${DRONE_TAG:-v1.0.0}.tgz "$CHARTMUSEUM_API/api/$([ -z $DRONE_TAG ] && echo testing || echo stable)/charts"
   environment:
     CHARTMUSEUM_USERNAME:
       from_secret: chartmuseum_username

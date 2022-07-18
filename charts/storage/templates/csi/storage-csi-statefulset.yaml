@@ -1,0 +1,86 @@
+{{- if eq .Values.global.storageLocation "on-cluster" }}
+{{- if .Values.csi.enabled }}
+{{- $clusterDomain := .Values.global.clusterDomain }}
+kind: StatefulSet
+apiVersion: apps/v1
+metadata:
+  name: drycc-storage-csi-controller
+spec:
+  selector:
+    matchLabels:
+      app: drycc-storage-csi-controller
+  serviceName: drycc-storage-csi-controller
+  replicas: {{ .Values.csi.statefulset.replicas }}
+  template:
+    metadata:
+      labels:
+        app: drycc-storage-csi-controller
+    spec:
+      priorityClassName: system-cluster-critical
+      serviceAccountName: drycc-storage-csi
+      containers:
+        - name: drycc-storage-csi-controller-provisioner
+          image: {{ .Values.csi.statefulset.provisionerImage }}
+          imagePullPolicy: "IfNotPresent"
+          args:
+            - "--csi-address=$(ADDRESS)"
+            - "--v=5"
+          env:
+            - name: ADDRESS
+              value: /var/lib/kubelet/plugins/cc.drycc.storage.csi/csi.sock
+          volumeMounts:
+            - name: socket-dir
+              mountPath: /var/lib/kubelet/plugins/cc.drycc.storage.csi
+        - name: drycc-storage-csi-controller-attacher
+          image: {{ .Values.csi.statefulset.attacherImage }}
+          imagePullPolicy: "IfNotPresent"
+          args:
+            - "--v=5"
+            - "--csi-address=$(ADDRESS)"
+            - "--timeout=120s"
+          env:
+            - name: ADDRESS
+              value: /var/lib/kubelet/plugins/cc.drycc.storage.csi/csi.sock
+          volumeMounts:
+            - name: socket-dir
+              mountPath: /var/lib/kubelet/plugins/cc.drycc.storage.csi
+        - name: drycc-storage-csi-controller-resizer
+          image: {{ .Values.csi.statefulset.resizerImage }}
+          imagePullPolicy: "IfNotPresent"
+          args:
+            - "--v=5"
+            - "--csi-address=$(ADDRESS)"
+          env:
+            - name: ADDRESS
+              value: /var/lib/kubelet/plugins/cc.drycc.storage.csi/csi.sock
+          volumeMounts:
+            - name: socket-dir
+              mountPath: /var/lib/kubelet/plugins/cc.drycc.storage.csi
+        - name: drycc-storage-csi-controller-plugin
+          image: {{.Values.imageRegistry}}/{{.Values.imageOrg}}/storage:{{.Values.imageTag}}
+          imagePullPolicy: IfNotPresent
+          args:
+            - "driver"
+            - "--v=4"
+            - "--meta-url=tikv://drycc-storage-meta-pd.{{.Release.Namespace}}.svc.{{.Values.global.clusterDomain}}:2379"
+          env:
+            - name: DRYCC_STORAGE_CSI_ENDPOINT
+              value: unix:///var/lib/kubelet/plugins/cc.drycc.storage.csi/csi.sock
+            - name: DRYCC_STORAGE_CSI_NODE_ID
+              valueFrom:
+                fieldRef:
+                  fieldPath: spec.nodeName
+            - name: DRYCC_STORAGE_CSI_PROVIDER
+              value: {{ .Values.csi.provider }}
+            - name: NAMESPACE
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.namespace
+          volumeMounts:
+            - name: socket-dir
+              mountPath: /var/lib/kubelet/plugins/cc.drycc.storage.csi
+      volumes:
+        - name: socket-dir
+          emptyDir: {}
+{{- end }}
+{{- end }}

@@ -1,0 +1,91 @@
+{{- if eq .Values.global.storageLocation "on-cluster" }}
+{{- if .Values.csi.enabled }}
+{{- $clusterDomain := .Values.global.clusterDomain }}
+kind: DaemonSet
+apiVersion: apps/v1
+metadata:
+  name: drycc-storage-csi-node
+spec:
+  selector:
+    matchLabels:
+      app: drycc-storage-csi-node
+  updateStrategy:
+    rollingUpdate:
+      maxUnavailable: 25%
+    type: RollingUpdate
+  template:
+    metadata:
+      labels:
+        app: drycc-storage-csi-node
+    spec:
+      priorityClassName: system-node-critical
+      serviceAccountName: drycc-storage-csi
+      containers:
+        - name: drycc-storage-csi-node-registrar
+          image: {{ .Values.csi.daemonset.registrarImage }}
+          imagePullPolicy: IfNotPresent
+          args:
+            - "--v=5"
+            - "--csi-address=/csi/csi.sock"
+            - "--kubelet-registration-path=/var/lib/kubelet/plugins/cc.drycc.storage.csi/csi.sock"
+          env:
+            - name: KUBE_NODE_NAME
+              valueFrom:
+                fieldRef:
+                  fieldPath: spec.nodeName
+          volumeMounts:
+            - name: plugin-dir
+              mountPath: /csi
+            - name: registration-dir
+              mountPath: /registration/
+        - name: drycc-storage-csi-node-plugin
+          securityContext:
+            privileged: true
+            capabilities:
+              add: ["SYS_ADMIN"]
+            allowPrivilegeEscalation: true
+          image: {{.Values.imageRegistry}}/{{.Values.imageOrg}}/storage:{{.Values.imageTag}}
+          imagePullPolicy: IfNotPresent
+          args:
+            - "driver"
+            - "--v=5"
+            - "--meta-url=tikv://drycc-storage-meta-pd.{{.Release.Namespace}}.svc.{{.Values.global.clusterDomain}}:2379"
+          env:
+            - name: DRYCC_STORAGE_CSI_ENDPOINT
+              value: unix:///csi/csi.sock
+            - name: DRYCC_STORAGE_CSI_NODE_ID
+              valueFrom:
+                fieldRef:
+                  fieldPath: spec.nodeName
+            - name: DRYCC_STORAGE_CSI_PROVIDER
+              value: {{ .Values.csi.provider }}
+            - name: NAMESPACE
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.namespace
+          volumeMounts:
+            - name: plugin-dir
+              mountPath: /csi
+            - name: pods-mount-dir
+              mountPath: /var/lib/kubelet/pods
+              mountPropagation: "Bidirectional"
+            - name: fuse-device
+              mountPath: /dev/fuse
+      volumes:
+        - name: registration-dir
+          hostPath:
+            path: /var/lib/kubelet/plugins_registry/
+            type: DirectoryOrCreate
+        - name: plugin-dir
+          hostPath:
+            path: /var/lib/kubelet/plugins/cc.drycc.storage.csi
+            type: DirectoryOrCreate
+        - name: pods-mount-dir
+          hostPath:
+            path: /var/lib/kubelet/pods
+            type: Directory
+        - name: fuse-device
+          hostPath:
+            path: /dev/fuse
+{{- end }}
+{{- end }}

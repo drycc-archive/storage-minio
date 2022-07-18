@@ -1,4 +1,4 @@
-SHORT_NAME := minio
+SHORT_NAME := storage
 PLATFORM ?= linux/amd64,linux/arm64
 
 # dockerized development environment variables

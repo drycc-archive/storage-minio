@@ -1,10 +1,10 @@
-{{- if eq .Values.global.minioLocation "on-cluster" }}
+{{- if eq .Values.global.storageLocation "on-cluster" }}
 apiVersion: v1
 kind: Service
 metadata:
-  name: drycc-minio
+  name: drycc-storage
   annotations:
-    {{- with .Values.service.annotations }}
+    {{- with .Values.storage.service.annotations }}
     {{- toYaml . | nindent 4 }}
     {{- end }}
   labels:
@@ -12,7 +12,7 @@ metadata:
 spec:
   type: ClusterIP
   selector:
-    app: drycc-minio
+    app: drycc-storage
   ports:
     - name: s3
       port: 9000

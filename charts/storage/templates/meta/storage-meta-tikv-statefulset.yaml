@@ -1,0 +1,115 @@
+{{- if eq .Values.global.storageLocation "on-cluster" }}
+{{- $replicaCount := int .Values.meta.tikv.replicas }}
+{{- $clusterDomain := .Values.global.clusterDomain }}
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: drycc-storage-meta-tikv
+  labels:
+    heritage: drycc
+  annotations:
+    component.drycc.cc/version: {{ .Values.imageTag }}
+spec:
+  serviceName: drycc-storage-meta-tikv
+  replicas: {{ $replicaCount }}
+  updateStrategy:
+    type: RollingUpdate
+  podManagementPolicy: OrderedReady
+  selector:
+    matchLabels:
+      app: drycc-storage-meta-tikv
+  template:
+    metadata:
+      labels:
+        app: drycc-storage-meta-tikv
+    spec:
+      affinity:
+        podAffinity: {{- include "common.affinities.pods" (dict "type" .Values.podAffinityPreset.type "key" .Values.podAffinityPreset.key "values" .Values.podAffinityPreset.values ) | nindent 10 }}
+        podAntiAffinity: {{- include "common.affinities.pods" (dict "type" .Values.meta.tikv.podAntiAffinityPreset.type "key" .Values.meta.tikv.podAntiAffinityPreset.key "values" .Values.meta.tikv.podAntiAffinityPreset.values ) | nindent 10 }}
+        nodeAffinity: {{- include "common.affinities.nodes" (dict "type" .Values.nodeAffinityPreset.type "key" .Values.nodeAffinityPreset.key "values" .Values.nodeAffinityPreset.values ) | nindent 10 }}
+      serviceAccount: drycc-storage
+      initContainers:
+      - name: drycc-storage-meta-tikv-init
+        image: docker.io/drycc/python-dev:latest
+        imagePullPolicy: {{ .Values.imagePullPolicy }}
+        args:
+          - netcat
+          - -u
+          - {{ include "pd.addresses" . }}
+        env:
+          - name: NAMESPACE
+            valueFrom:
+              fieldRef:
+                fieldPath: metadata.namespace
+      containers:
+        - name: drycc-storage-meta-tikv
+          image: {{ .Values.imageRegistry }}/{{ .Values.imageOrg }}/storage:{{ .Values.imageTag }}
+          imagePullPolicy: {{ .Values.imagePullPolicy }}
+          args:
+            - "tikv-server"
+            - "--pd-endpoints={{ include "pd.addresses" . }}"
+            - "--addr=0.0.0.0:20160"
+            - "--status-addr=0.0.0.0:20180"
+            - "--advertise-addr=$(POD_NAME).drycc-storage-meta-tikv.$(NAMESPACE).svc.{{ $clusterDomain }}:20160"
+            - "--advertise-status-addr=$(POD_NAME).drycc-storage-meta-tikv.$(NAMESPACE).{{ $clusterDomain }}:20180"
+            - "--data-dir=/data"
+          env:
+            - name: POD_IP
+              valueFrom:
+                fieldRef:
+                  fieldPath: status.podIP
+            - name: POD_NAME
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.name
+            - name: NAMESPACE
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.namespace
+          ports:
+            - containerPort: 20160
+            - containerPort: 20180
+          livenessProbe:
+            tcpSocket:
+              port: 20160
+            initialDelaySeconds: 5
+            periodSeconds: 5
+            timeoutSeconds: 1
+            successThreshold: 1
+            failureThreshold: 5
+          readinessProbe:
+            tcpSocket:
+              port: 20180
+            initialDelaySeconds: 5
+            periodSeconds: 5
+            timeoutSeconds: 1
+            successThreshold: 1
+            failureThreshold: 5
+          volumeMounts:
+          {{- if .Values.meta.tikv.persistence.enabled }}
+          - name: storage-tikv
+            mountPath: /data
+            subPath: tikv
+          {{- end }}
+      securityContext:
+        fsGroup: 1001
+        runAsGroup: 1001
+        runAsUser: 1001
+  {{- if .Values.meta.tikv.persistence.enabled }}
+  volumeClaimTemplates:
+  - metadata:
+      name: storage-tikv
+    spec:
+      accessModes: [ "ReadWriteOnce" ]
+      {{- if .Values.meta.tikv.persistence.storageClass }}
+      {{- if (eq "-" .Values.meta.tikv.persistence.storageClass) }}
+      storageClassName: ""
+      {{- else }}
+      storageClassName: "{{ .Values.meta.tikv.persistence.storageClass }}"
+      {{- end }}
+      {{- end }}
+      resources:
+        requests:
+          storage: {{ .Values.meta.tikv.persistence.size | quote }}
+  {{- end }}
+{{- end }}

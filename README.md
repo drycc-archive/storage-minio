@@ -1,9 +1,9 @@
 
-# Drycc Minio v2
+# Drycc Storage v3
 
-[![Build Status](https://drone.drycc.cc/api/badges/drycc/minio/status.svg)](https://drone.drycc.cc/drycc/minio)
-[![codecov](https://codecov.io/gh/drycc/minio/branch/main/graph/badge.svg)](https://codecov.io/gh/drycc/minio)
-[![Go Report Card](http://goreportcard.com/badge/drycc/minio)](http://goreportcard.com/report/drycc/minio)
+[![Build Status](https://drone.drycc.cc/api/badges/drycc/storage/status.svg)](https://drone.drycc.cc/drycc/storage)
+[![codecov](https://codecov.io/gh/drycc/storage/branch/main/graph/badge.svg)](https://codecov.io/gh/drycc/storage)
+[![Go Report Card](http://goreportcard.com/badge/drycc/storage)](http://goreportcard.com/report/drycc/storage)
 
 Drycc (pronounced DAY-iss) Workflow is an open source Platform as a Service (PaaS) that adds a developer-friendly layer to any [Kubernetes](http://kubernetes.io) cluster, making it easy to deploy and manage applications on your own servers.
 
@@ -13,7 +13,7 @@ We welcome your input! If you have feedback, please submit an [issue][issues]. I
 
 # About
 
-The Drycc minio component provides an [S3 API][s3-api] compatible object storage server, based on [Minio](http://minio.io), that can be run on Kubernetes. It's intended for use within the [Drycc v2 platform][drycc-docs] as an object storage server, but it's flexible enough to be run as a standalone pod on any Kubernetes cluster.
+The Drycc storage component provides an [S3 API][s3-api] compatible object storage server, based on [Minio](http://minio.io), that can be run on Kubernetes. It's intended for use within the [Drycc v2 platform][drycc-docs] as an object storage server, but it's flexible enough to be run as a standalone pod on any Kubernetes cluster.
 
 Note that in the default [Helm chart for the Drycc platform](https://github.com/drycc/charts/tree/main/drycc-dev), this component is used as a storage location for the following components:
 
@@ -21,7 +21,7 @@ Note that in the default [Helm chart for the Drycc platform](https://github.com/
 - [drycc/registry](https://github.com/drycc/registry)
 - [drycc/builder](https://github.com/drycc/builder)
 
-Also note that we aren't currently providing this component with any kind of persistent storage, but it may work with [persistent volumes](http://kubernetes.io/docs/user-guide/volumes/).
+At least three physical nodes are required in production mode, otherwise data may be lost.
 
 # Development
 
@@ -69,7 +69,7 @@ Please follow the instructions on the [official Drycc docs][drycc-docs] to insta
 
 [install-k8s]: http://kubernetes.io/gettingstarted/
 [s3-api]: http://docs.aws.amazon.com/AmazonS3/latest/API/APIRest.html
-[issues]: https://github.com/drycc/minio/issues
-[prs]: https://github.com/drycc/minio/pulls
+[issues]: https://github.com/drycc/storage/issues
+[prs]: https://github.com/drycc/storage/pulls
 [drycc-docs]: https://drycc.com/docs/workflow
 [v2.18]: https://github.com/drycc/workflow/releases/tag/v2.18.0

@@ -1,0 +1,35 @@
+{{- if eq .Values.global.storageLocation "on-cluster" }}
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: drycc-storage-meta-network-policy
+  namespace: drycc
+spec:
+  podSelector:
+    matchLabels:
+      app: drycc-storage-meta-pd
+  policyTypes:
+    - Ingress
+  ingress:
+    - from:
+      - namespaceSelector:
+          matchLabels:
+            kubernetes.io/metadata.name: {{ .Release.Namespace }}
+        podSelector:
+          matchLabels:
+            app: drycc-storage-meta-tikv
+    - from:
+      - namespaceSelector:
+          matchLabels:
+            kubernetes.io/metadata.name: {{ .Release.Namespace }}
+        podSelector:
+          matchLabels:
+            app: drycc-storage-csi-controller
+    - from:
+      - namespaceSelector:
+          matchLabels:
+            kubernetes.io/metadata.name: {{ .Release.Namespace }}
+        podSelector:
+          matchLabels:
+            app: drycc-storage-csi-node
+{{- end }}

@@ -1,0 +1,29 @@
+{{- if eq .Values.global.storageLocation "on-cluster" }}
+{{- if .Values.csi.enabled }}
+{{- if .Values.csi.storageClass.create -}}
+kind: StorageClass
+apiVersion: storage.k8s.io/v1
+metadata:
+  name: {{ .Values.csi.storageClass.name }}
+{{- if .Values.csi.storageClass.annotations }}
+  annotations:
+{{ toYaml .Values.csi.storageClass.annotations | indent 4 }}
+{{- end }}
+provisioner: cc.drycc.storage.csi
+allowVolumeExpansion: true
+parameters:
+  options: "{{ .Values.csi.storageClass.parameters.options }}"
+  csi.storage.k8s.io/provisioner-secret-name: storage-creds
+  csi.storage.k8s.io/provisioner-secret-namespace: {{ .Release.Namespace }}
+  csi.storage.k8s.io/controller-publish-secret-name: storage-creds
+  csi.storage.k8s.io/controller-publish-secret-namespace: {{ .Release.Namespace }}
+  csi.storage.k8s.io/controller-expand-secret-name: storage-creds
+  csi.storage.k8s.io/controller-expand-secret-namespace: {{ .Release.Namespace }}
+  csi.storage.k8s.io/node-stage-secret-name: storage-creds
+  csi.storage.k8s.io/node-stage-secret-namespace: {{ .Release.Namespace }}
+  csi.storage.k8s.io/node-publish-secret-name: storage-creds
+  csi.storage.k8s.io/node-publish-secret-namespace: {{ .Release.Namespace }}
+reclaimPolicy: {{ .Values.csi.storageClass.reclaimPolicy }}
+{{- end -}}
+{{- end }}
+{{- end }}

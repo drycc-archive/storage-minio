@@ -1,0 +1,104 @@
+{{- if eq .Values.global.storageLocation "on-cluster" }}
+{{- $replicaCount := int .Values.meta.pd.replicas }}
+{{- $clusterDomain := .Values.global.clusterDomain }}
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: drycc-storage-meta-pd
+  labels:
+    heritage: drycc
+  annotations:
+    component.drycc.cc/version: {{ .Values.imageTag }}
+spec:
+  serviceName: drycc-storage-meta-pd
+  replicas: {{ $replicaCount }}
+  updateStrategy:
+    type: RollingUpdate
+  podManagementPolicy: OrderedReady
+  selector:
+    matchLabels:
+      app: drycc-storage-meta-pd
+  template:
+    metadata:
+      labels:
+        app: drycc-storage-meta-pd
+    spec:
+      affinity:
+        podAffinity: {{- include "common.affinities.pods" (dict "type" .Values.podAffinityPreset.type "key" .Values.podAffinityPreset.key "values" .Values.podAffinityPreset.values ) | nindent 10 }}
+        podAntiAffinity: {{- include "common.affinities.pods" (dict "type" .Values.meta.pd.podAntiAffinityPreset.type "key" .Values.meta.pd.podAntiAffinityPreset.key "values" .Values.meta.pd.podAntiAffinityPreset.values ) | nindent 10 }}
+        nodeAffinity: {{- include "common.affinities.nodes" (dict "type" .Values.nodeAffinityPreset.type "key" .Values.nodeAffinityPreset.key "values" .Values.nodeAffinityPreset.values ) | nindent 10 }}
+      serviceAccount: drycc-storage
+      containers:
+        - name: drycc-storage-meta-pd
+          image: {{ .Values.imageRegistry }}/{{ .Values.imageOrg }}/storage:{{ .Values.imageTag }}
+          imagePullPolicy: {{ .Values.imagePullPolicy }}
+          args:
+            - "pd-server"
+            - "--name=$(POD_NAME)"
+            - "--data-dir=/data"
+            - "--client-urls=http://0.0.0.0:2379"
+            - "--peer-urls=http://0.0.0.0:2380"
+            - "--advertise-client-urls=http://$(POD_NAME).drycc-storage-meta-pd.$(NAMESPACE).svc.{{ $clusterDomain }}:2379"
+            - "--advertise-peer-urls=http://$(POD_NAME).drycc-storage-meta-pd.$(NAMESPACE).svc.{{ $clusterDomain }}:2380"
+          env:
+            - name: POD_IP
+              valueFrom:
+                fieldRef:
+                  fieldPath: status.podIP
+            - name: POD_NAME
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.name
+            - name: NAMESPACE
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.namespace
+            - name: DRYCC_STORAGE_PD_ENDPOINTS
+              value: "{{ include "pd.addresses" . }}"
+          ports:
+            - containerPort: 2379
+            - containerPort: 2380
+          livenessProbe:
+            tcpSocket:
+              port: 2380
+            initialDelaySeconds: 30
+            periodSeconds: 5
+            timeoutSeconds: 1
+            successThreshold: 1
+            failureThreshold: 5
+          readinessProbe:
+            tcpSocket:
+              port: 2379
+            initialDelaySeconds: 5
+            periodSeconds: 5
+            timeoutSeconds: 1
+            successThreshold: 1
+            failureThreshold: 5
+          volumeMounts:
+          {{- if .Values.meta.pd.persistence.enabled }}
+          - name: storage-pd
+            mountPath: /data
+            subPath: pd
+          {{- end }}
+      securityContext:
+        fsGroup: 1001
+        runAsGroup: 1001
+        runAsUser: 1001
+  {{- if .Values.meta.pd.persistence.enabled }}
+  volumeClaimTemplates:
+  - metadata:
+      name: storage-pd
+    spec:
+      accessModes: [ "ReadWriteOnce" ]
+      {{- if .Values.meta.pd.persistence.storageClass }}
+      {{- if (eq "-" .Values.meta.pd.persistence.storageClass) }}
+      storageClassName: ""
+      {{- else }}
+      storageClassName: "{{ .Values.meta.pd.persistence.storageClass }}"
+      {{- end }}
+      {{- end }}
+      resources:
+        requests:
+          storage: {{ .Values.meta.pd.persistence.size | quote }}
+  {{- end }}
+{{- end }}
