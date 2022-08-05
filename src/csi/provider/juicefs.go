@@ -40,38 +40,18 @@ func (provider *juicefsProvider) ParseFlag() error {
 }
 
 func (provider *juicefsProvider) NodeMountVolume(bucket, prefix, path string, capacity uint64, context map[string]string, options ...string) error {
-	endpoint := context["endpoint"]
-	accessKey := context["accesskey"]
-	secretKey := context["secretkey"]
-	inode := capacity / JuicefsBlockSize
-	metaURL := fmt.Sprintf("%s/%s/%s", provider.MetaURL, bucket, prefix)
+	metaURL, err := provider.formatJuicefs(bucket, prefix, path, capacity, context, options...)
+	if err != nil {
+		return err
+	}
 	args := []string{
-		"format",
-		"--inodes", strconv.FormatUint(JuicefsBlockSize, 10),
-		"--block-size", strconv.FormatUint(inode, 10),
-		"--capacity", strconv.FormatUint(provider.formatCapacity(capacity), 10),
-		"--trash-days", strconv.FormatUint(JuicefsTrashDays, 10),
-		"--storage", "s3",
-		"--bucket", fmt.Sprintf("%s/%s/%s", endpoint, bucket, prefix),
-		"--access-key", accessKey,
-		"--secret-key", secretKey,
-		metaURL,
-		JuicefsName,
-	}
-	cmd := exec.Command("juicefs", args...)
-	cmd.Stderr = os.Stderr
-	glog.V(3).Infof("juicefs format with command: %s and args: %s", "juicefs", args)
-
-	if out, err := cmd.Output(); err != nil {
-		return fmt.Errorf("error exec command: %s\nargs: %s\noutput: %s", "juicefs", args, out)
-	}
-	args = []string{
 		"mount",
 		metaURL,
 		path,
+		"--background",
 	}
 	args = append(args, options...)
-	cmd = exec.Command("juicefs", args...)
+	cmd := exec.Command("juicefs", args...)
 	cmd.Stderr = os.Stderr
 	glog.V(3).Infof("juicefs format with command: %s and args: %s", "juicefs", args)
 
@@ -116,4 +96,38 @@ func (provider *juicefsProvider) formatCapacity(capacity uint64) uint64 {
 	} else {
 		return capacity
 	}
+}
+
+func (provider *juicefsProvider) formatJuicefs(bucket, prefix, path string, capacity uint64, context map[string]string, options ...string) (string, error) {
+	endpoint := context["endpoint"]
+	accessKey := context["accesskey"]
+	secretKey := context["secretkey"]
+	inode := capacity / JuicefsBlockSize
+	metaURL := fmt.Sprintf("%s/%s/%s", provider.MetaURL, bucket, prefix)
+
+	if out, err := exec.Command("juicefs", []string{"status", metaURL}...).Output(); err == nil {
+		glog.V(3).Infof("%s has been formatted: %s", "juicefs", out)
+		return metaURL, nil
+	}
+
+	args := []string{
+		"format",
+		"--inodes", strconv.FormatUint(inode, 10),
+		"--block-size", strconv.FormatUint(JuicefsBlockSize, 10),
+		"--capacity", strconv.FormatUint(provider.formatCapacity(capacity), 10),
+		"--trash-days", strconv.FormatUint(JuicefsTrashDays, 10),
+		"--storage", "s3",
+		"--bucket", fmt.Sprintf("%s/%s/%s", endpoint, bucket, prefix),
+		"--access-key", accessKey,
+		"--secret-key", secretKey,
+		metaURL,
+		JuicefsName,
+	}
+	cmd := exec.Command("juicefs", args...)
+	cmd.Stderr = os.Stderr
+	glog.V(3).Infof("juicefs format with command: %s and args: %s", "juicefs", args)
+	if out, err := cmd.Output(); err != nil {
+		return metaURL, fmt.Errorf("error exec command: %s\nargs: %s\noutput: %s", "juicefs", args, out)
+	}
+	return metaURL, nil
 }
