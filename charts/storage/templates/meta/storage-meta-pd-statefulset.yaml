@@ -36,8 +36,8 @@ spec:
             - "pd-server"
             - "--name=$(POD_NAME)"
             - "--data-dir=/data"
-            - "--client-urls=http://0.0.0.0:2379"
-            - "--peer-urls=http://0.0.0.0:2380"
+            - "--client-urls=http://$(POD_IP):2379"
+            - "--peer-urls=http://$(POD_IP):2380"
             - "--advertise-client-urls=http://$(POD_NAME).drycc-storage-meta-pd.$(NAMESPACE).svc.{{ $clusterDomain }}:2379"
             - "--advertise-peer-urls=http://$(POD_NAME).drycc-storage-meta-pd.$(NAMESPACE).svc.{{ $clusterDomain }}:2380"
           env:

@@ -48,8 +48,8 @@ spec:
           args:
             - "tikv-server"
             - "--pd-endpoints={{ include "pd.addresses" . }}"
-            - "--addr=0.0.0.0:20160"
-            - "--status-addr=0.0.0.0:20180"
+            - "--addr=$(POD_IP):20160"
+            - "--status-addr=$(POD_IP):20180"
             - "--advertise-addr=$(POD_NAME).drycc-storage-meta-tikv.$(NAMESPACE).svc.{{ $clusterDomain }}:20160"
             - "--advertise-status-addr=$(POD_NAME).drycc-storage-meta-tikv.$(NAMESPACE).{{ $clusterDomain }}:20180"
             - "--data-dir=/data"
