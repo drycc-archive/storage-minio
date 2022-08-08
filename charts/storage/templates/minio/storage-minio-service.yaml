@@ -2,9 +2,9 @@
 apiVersion: v1
 kind: Service
 metadata:
-  name: drycc-storage
+  name: drycc-storage-minio
   annotations:
-    {{- with .Values.storage.service.annotations }}
+    {{- with .Values.minio.service.annotations }}
     {{- toYaml . | nindent 4 }}
     {{- end }}
   labels:
@@ -12,7 +12,7 @@ metadata:
 spec:
   type: ClusterIP
   selector:
-    app: drycc-storage
+    app: drycc-storage-minio
   ports:
     - name: s3
       port: 9000
