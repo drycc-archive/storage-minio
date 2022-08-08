@@ -61,9 +61,10 @@ spec:
             successThreshold: 1
             failureThreshold: 5
           readinessProbe:
-            tcpSocket:
+            httpGet:
+              path: /minio/health/live
               port: 9000
-            initialDelaySeconds: 5
+            initialDelaySeconds: 60
             periodSeconds: 5
             timeoutSeconds: 1
             successThreshold: 1
