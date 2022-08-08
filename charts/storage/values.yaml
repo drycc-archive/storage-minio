@@ -38,7 +38,6 @@ storage:
     accessMode: ReadWriteOnce
     size: 5Gi
     storageClass: ""
-    volumeName: ""
 
 meta:
   # pd
@@ -59,7 +58,6 @@ meta:
       accessMode: ReadWriteOnce
       size: 10Gi
       storageClass: ""
-      volumeName: ""
 
   # tikv
   tikv:
@@ -79,7 +77,6 @@ meta:
       accessMode: ReadWriteOnce
       size: 10Gi
       storageClass: ""
-      volumeName: ""
 
 # drycc storage csi
 csi:
