@@ -12,12 +12,6 @@ import (
 	"github.com/golang/glog"
 )
 
-const (
-	JuicefsName      = "drycc"
-	JuicefsBlockSize = 1024 * 4
-	JuicefsTrashDays = 1
-)
-
 func init() {
 	globalProviders["juicefs"] = &juicefsProvider{
 		BaseProvider: BaseProvider{},
@@ -26,16 +20,25 @@ func init() {
 
 type juicefsProvider struct {
 	BaseProvider
-	MetaURL string
+	Name      string
+	MetaURL   string
+	BlockSize uint64
+	TrashDays uint64
 }
 
 func (provider *juicefsProvider) ParseFlag() error {
+	name := flag.String("name", "drycc", "name is the prefix of all objects in data storage.")
 	metaURL := flag.String("meta-url", "", "meta-url is used to set up the metadata engine.")
+	blockSize := flag.Uint64("block-size", 4096, "size of block in KiB.")
+	trashDays := flag.Uint64("trash-days", 0, "number of days after which removed files will be permanently deleted.")
 	flag.Parse()
 	if *metaURL == "" {
 		return errors.New("meta-url is required")
 	}
+	provider.Name = *name
 	provider.MetaURL = *metaURL
+	provider.BlockSize = *blockSize
+	provider.TrashDays = *trashDays
 	return nil
 }
 
@@ -63,7 +66,7 @@ func (provider *juicefsProvider) NodeMountVolume(bucket, prefix, path string, ca
 }
 
 func (provider *juicefsProvider) ControllerExpandVolume(bucket, prefix string, capacity uint64, context map[string]string) error {
-	inode := capacity / JuicefsBlockSize
+	inode := capacity / provider.BlockSize
 	metaURL := fmt.Sprintf("%s/%s/%s", provider.MetaURL, bucket, prefix)
 	args := []string{
 		"config",
@@ -102,7 +105,7 @@ func (provider *juicefsProvider) formatJuicefs(bucket, prefix, path string, capa
 	endpoint := context["endpoint"]
 	accessKey := context["accesskey"]
 	secretKey := context["secretkey"]
-	inode := capacity / JuicefsBlockSize
+	inode := capacity / provider.BlockSize
 	metaURL := fmt.Sprintf("%s/%s/%s", provider.MetaURL, bucket, prefix)
 
 	if out, err := exec.Command("juicefs", []string{"status", metaURL}...).Output(); err == nil {
@@ -113,15 +116,15 @@ func (provider *juicefsProvider) formatJuicefs(bucket, prefix, path string, capa
 	args := []string{
 		"format",
 		"--inodes", strconv.FormatUint(inode, 10),
-		"--block-size", strconv.FormatUint(JuicefsBlockSize, 10),
+		"--block-size", strconv.FormatUint(provider.BlockSize, 10),
 		"--capacity", strconv.FormatUint(provider.formatCapacity(capacity), 10),
-		"--trash-days", strconv.FormatUint(JuicefsTrashDays, 10),
+		"--trash-days", strconv.FormatUint(provider.TrashDays, 10),
 		"--storage", "s3",
 		"--bucket", fmt.Sprintf("%s/%s/%s", endpoint, bucket, prefix),
 		"--access-key", accessKey,
 		"--secret-key", secretKey,
 		metaURL,
-		JuicefsName,
+		provider.Name,
 	}
 	cmd := exec.Command("juicefs", args...)
 	cmd.Stderr = os.Stderr
