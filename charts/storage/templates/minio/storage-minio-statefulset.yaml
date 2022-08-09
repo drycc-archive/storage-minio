@@ -51,11 +51,19 @@ spec:
           ports:
             - containerPort: 9000
             - containerPort: 8082
+          startupProbe:
+            tcpSocket:
+              port: 9000
+            initialDelaySeconds: 30
+            periodSeconds: 5
+            timeoutSeconds: 1
+            successThreshold: 1
+            failureThreshold: 5
           livenessProbe:
             httpGet:
-              path: /healthz
-              port: 8082
-            initialDelaySeconds: 90
+              path: /minio/health/live
+              port: 9000
+            initialDelaySeconds: 30
             periodSeconds: 5
             timeoutSeconds: 1
             successThreshold: 1
@@ -64,7 +72,7 @@ spec:
             httpGet:
               path: /minio/health/live
               port: 9000
-            initialDelaySeconds: 60
+            initialDelaySeconds: 30
             periodSeconds: 5
             timeoutSeconds: 1
             successThreshold: 1

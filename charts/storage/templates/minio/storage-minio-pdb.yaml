@@ -1,0 +1,13 @@
+{{- if eq .Values.global.storageLocation "on-cluster" }}
+{{- $zoneCount := int .Values.minio.zones }}
+{{- $replicaCount := int .Values.minio.replicas }}
+apiVersion: policy/v1
+kind: PodDisruptionBudget
+metadata:
+  name: drycc-storage-minio
+spec:
+  minAvailable: {{ (printf "%d" (add1 (div (mul $zoneCount $replicaCount) 2))) }}
+  selector:
+    matchLabels:
+      app: drycc-storage-minio
+{{- end }}
