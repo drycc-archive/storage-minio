@@ -15,12 +15,10 @@ import (
 	"time"
 
 	"github.com/drycc/pkg/utils"
-	"github.com/minio/minio-go/v7"
-	"github.com/minio/minio-go/v7/pkg/credentials"
-	"golang.org/x/exp/slices"
 
 	"github.com/drycc/storage/src/csi/driver"
 	"github.com/drycc/storage/src/healthsrv"
+	"github.com/drycc/storage/src/storage"
 )
 
 const (
@@ -49,7 +47,14 @@ COPYRIGHT:
 )
 
 var (
-	commandList        = []string{"driver", "minio", "pd-ctl", "tikv-ctl", "pd-server", "tikv-server"}
+	commandRunners = map[string]func(command string){
+		"driver":      runDriver,
+		"minio":       runMinio,
+		"pd-server":   startPDServer,
+		"tikv-ctl":    runCommand,
+		"pd-ctl":      runCommand,
+		"tikv-server": runCommand,
+	}
 	errMinioExited     = errors.New("minio server exited with unknown status")
 	errHealthSrvExited = errors.New("healthcheck server exited with unknown status")
 )
@@ -69,20 +74,12 @@ func run(cmd string) error {
 	return nil
 }
 
-func newMinioClient(host, port, accessKey, accessSecret string, insecure bool) (*minio.Client, error) {
-	return minio.New(fmt.Sprintf("%s:%s", host, port), &minio.Options{
-		Creds:  credentials.NewStaticV4(accessKey, accessSecret, ""),
-		Secure: insecure,
-	})
-}
-
 func startServer(runErrCh chan error) {
 	err := os.Setenv("MINIO_ROOT_USER", os.Getenv("DRYCC_STORAGE_ACCESSKEY"))
 	checkError(err)
 	err = os.Setenv("MINIO_ROOT_PASSWORD", os.Getenv("DRYCC_STORAGE_SECRETKEY"))
 	checkError(err)
 
-	os.Args[0] = defaultMinioExec
 	mc := strings.Join(os.Args, " ")
 	log.Printf("starting Minio server")
 	go func() {
@@ -106,7 +103,7 @@ func startHealth(healthSrvErrCh chan error) {
 	if minioPort == "" {
 		minioPort = defaultMinioPort
 	}
-	minioClient, err := newMinioClient(minioHost, minioPort, accesskey, secretkey, localMinioInsecure)
+	healthChecker, err := storage.NewHealthChecker(minioHost, minioPort, accesskey, secretkey, localMinioInsecure)
 	if err != nil {
 		log.Printf("Error creating minio client (%s)", err)
 		os.Exit(1)
@@ -124,7 +121,7 @@ func startHealth(healthSrvErrCh chan error) {
 	log.Printf("starting health check server on %s:%d", healthSrvHost, healthSrvPort)
 
 	go func() {
-		if err := healthsrv.Start(healthSrvHost, healthSrvPort, minioClient); err != nil {
+		if err := healthsrv.Start(healthSrvHost, healthSrvPort, healthChecker); err != nil {
 			healthSrvErrCh <- err
 		} else {
 			healthSrvErrCh <- errHealthSrvExited
@@ -139,7 +136,7 @@ func checkError(err error) {
 	}
 }
 
-func runDriver() {
+func runDriver(command string) {
 	nodeID := os.Getenv("DRYCC_STORAGE_CSI_NODE_ID")
 	provider := os.Getenv("DRYCC_STORAGE_CSI_PROVIDER")
 	endpoint := os.Getenv("DRYCC_STORAGE_CSI_ENDPOINT")
@@ -160,7 +157,8 @@ func runDriver() {
 	os.Exit(0)
 }
 
-func runMinio() {
+func runMinio(command string) {
+	os.Args[0] = defaultMinioExec
 	runErrCh := make(chan error)
 	healthSrvErrCh := make(chan error)
 	startServer(runErrCh)
@@ -187,7 +185,7 @@ func checkConnect(host string, timeout time.Duration) bool {
 	return false
 }
 
-func startPDServer() {
+func startPDServer(command string) {
 	endpointsString := os.Getenv("DRYCC_STORAGE_PD_ENDPOINTS")
 	endpoints := strings.Split(endpointsString, ",")
 	for index := range endpoints {
@@ -225,7 +223,7 @@ func help() {
 	if tpl, err := template.New("help").Parse(mainHelpTemplate); err != nil {
 		log.Fatal(err)
 	} else {
-		tpl.Execute(os.Stdout, commandList)
+		tpl.Execute(os.Stdout, commandRunners)
 	}
 }
 
@@ -235,16 +233,9 @@ func main() {
 	} else {
 		command := os.Args[1]
 		os.Args = append(os.Args[:1], os.Args[1+1:]...)
-		if slices.Contains(commandList, command) {
-			if command == "driver" {
-				runDriver()
-			} else if command == "minio" {
-				runMinio()
-			} else if command == "pd-server" {
-				startPDServer()
-			} else {
-				runCommand(command)
-			}
+		runner := commandRunners[command]
+		if runner != nil {
+			runner(command)
 		} else {
 			help()
 		}

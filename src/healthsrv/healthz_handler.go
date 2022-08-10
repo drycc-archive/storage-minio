@@ -1,31 +1,19 @@
 package healthsrv
 
 import (
-	"context"
-	"encoding/json"
 	"fmt"
 	"log"
 	"net/http"
+	"time"
 
 	"github.com/drycc/storage/src/storage"
-	"github.com/minio/minio-go/v7"
 )
 
-type healthZResp struct {
-	Buckets []minio.BucketInfo `json:"buckets"`
-}
-
-func healthZHandler(bucketLister storage.BucketLister) http.Handler {
+func healthZHandler(healthChecker storage.HealthChecker) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		buckets, err := bucketLister.ListBuckets(context.Background())
+		_, err := healthChecker.HealthCheck(9 * time.Second)
 		if err != nil {
 			str := fmt.Sprintf("Probe error: listing buckets (%s)", err)
-			log.Println(str)
-			http.Error(w, str, http.StatusInternalServerError)
-			return
-		}
-		if err := json.NewEncoder(w).Encode(healthZResp{Buckets: buckets}); err != nil {
-			str := fmt.Sprintf("Probe error: encoding buckets json (%s)", err)
 			log.Println(str)
 			http.Error(w, str, http.StatusInternalServerError)
 			return

@@ -2,8 +2,9 @@ package healthsrv
 
 import (
 	"fmt"
-	"github.com/minio/minio-go/v7"
 	"net/http"
+
+	"github.com/drycc/storage/src/storage"
 )
 
 const (
@@ -12,9 +13,9 @@ const (
 )
 
 // Start starts the healthcheck server on $host:$port and blocks. It only returns if the server fails, with the indicative error
-func Start(host string, port int, minioClient *minio.Client) error {
+func Start(host string, port int, healthChecker storage.HealthChecker) error {
 	mux := http.NewServeMux()
-	mux.Handle("/healthz", healthZHandler(minioClient))
+	mux.Handle("/healthz", healthZHandler(healthChecker))
 
 	hostStr := fmt.Sprintf("%s:%d", host, port)
 	return http.ListenAndServe(hostStr, mux)

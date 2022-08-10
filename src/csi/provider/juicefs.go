@@ -96,9 +96,8 @@ func (provider *juicefsProvider) formatCapacity(capacity uint64) uint64 {
 	capacity = capacity / (1024 * 1024 * 1024)
 	if capacity < 1 {
 		return 1
-	} else {
-		return capacity
 	}
+	return capacity
 }
 
 func (provider *juicefsProvider) formatJuicefs(bucket, prefix, path string, capacity uint64, context map[string]string, options ...string) (string, error) {
