@@ -1,6 +1,6 @@
 module github.com/drycc/storage
 
-go 1.18
+go 1.19
 
 require (
 	github.com/container-storage-interface/spec v1.6.0
@@ -10,7 +10,6 @@ require (
 	github.com/minio/madmin-go v1.4.15
 	github.com/minio/minio-go/v7 v7.0.31
 	github.com/mitchellh/go-ps v1.0.0
-	golang.org/x/exp v0.0.0-20220722155223-a9213eeb770e
 	golang.org/x/net v0.0.0-20220225172249-27dd8689420f
 	google.golang.org/grpc v1.48.0
 	k8s.io/klog/v2 v2.70.1
@@ -23,6 +22,7 @@ require (
 	github.com/go-logr/logr v1.2.0 // indirect
 	github.com/go-ole/go-ole v1.2.4 // indirect
 	github.com/golang/protobuf v1.5.2 // indirect
+	github.com/google/go-cmp v0.5.8 // indirect
 	github.com/google/uuid v1.3.0 // indirect
 	github.com/json-iterator/go v1.1.12 // indirect
 	github.com/klauspost/compress v1.13.5 // indirect
