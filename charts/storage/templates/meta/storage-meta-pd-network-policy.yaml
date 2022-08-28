@@ -17,6 +17,13 @@ spec:
             kubernetes.io/metadata.name: {{ .Release.Namespace }}
         podSelector:
           matchLabels:
+            app: drycc-storage-meta-pd
+    - from:
+      - namespaceSelector:
+          matchLabels:
+            kubernetes.io/metadata.name: {{ .Release.Namespace }}
+        podSelector:
+          matchLabels:
             app: drycc-storage-meta-tikv
     - from:
       - namespaceSelector:
