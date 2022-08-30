@@ -29,7 +29,7 @@ test: test-style
 	${DEV_ENV_CMD} go test ./...
 
 test-style:
-	${DEV_ENV_CMD} lint --deadline
+	${DEV_ENV_CMD} lint
 
 test-cover:
 	${DEV_ENV_CMD} test-cover.sh
