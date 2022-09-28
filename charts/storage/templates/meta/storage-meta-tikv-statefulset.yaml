@@ -53,6 +53,7 @@ spec:
             - "--advertise-addr=$(POD_NAME).drycc-storage-meta-tikv.$(NAMESPACE).svc.{{ $clusterDomain }}:20160"
             - "--advertise-status-addr=$(POD_NAME).drycc-storage-meta-tikv.$(NAMESPACE).{{ $clusterDomain }}:20180"
             - "--data-dir=/data"
+            - "--log-file=/tmp/tikv.log"
           env:
             - name: POD_IP
               valueFrom:
