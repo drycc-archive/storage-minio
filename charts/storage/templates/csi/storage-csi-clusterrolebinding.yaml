@@ -3,14 +3,14 @@
 kind: ClusterRoleBinding
 apiVersion: rbac.authorization.k8s.io/v1
 metadata:
-  name: drycc-storage-csi
+  name: {{ printf "%s:drycc-storage-csi" .Release.Namespace | quote }}
 subjects:
   - kind: ServiceAccount
     name: drycc-storage-csi
-    namespace: drycc
+    namespace: {{ .Release.Namespace }}
 roleRef:
   kind: ClusterRole
-  name: drycc:drycc-storage-csi
+  name: {{ printf "%s:drycc-storage-csi" .Release.Namespace | quote }}
   apiGroup: rbac.authorization.k8s.io
 {{- end }}
 {{- end }}

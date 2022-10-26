@@ -3,7 +3,7 @@
 kind: ClusterRole
 apiVersion: rbac.authorization.k8s.io/v1
 metadata:
-  name: drycc:drycc-storage-csi
+  name: {{ printf "%s:drycc-storage-csi" .Release.Namespace | quote }}
 rules:
   - apiGroups: [""]
     resources: ["secrets"]
