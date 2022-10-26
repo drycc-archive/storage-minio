@@ -39,4 +39,11 @@ spec:
         podSelector:
           matchLabels:
             app: drycc-storage-csi-node
+    - from:
+      - namespaceSelector:
+          matchLabels:
+            kubernetes.io/metadata.name: {{ .Release.Namespace }}
+        podSelector:
+          matchLabels:
+            app: drycc-monitor-telegraf
 {{- end }}
