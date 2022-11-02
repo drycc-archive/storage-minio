@@ -1,0 +1,12 @@
+{{- if eq .Values.global.storageLocation "on-cluster"}}
+apiVersion: v1
+kind: Secret
+metadata:
+  name: storage-meta-creds
+  labels:
+    heritage: drycc
+type: Opaque
+data:
+  pd-addrs: {{ include "pd.addresses" . | b64enc }}
+  tikv-addrs: {{ include "tikv.addresses" . | b64enc }}
+{{- end }}
