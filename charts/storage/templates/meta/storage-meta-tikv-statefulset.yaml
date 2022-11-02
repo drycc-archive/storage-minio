@@ -73,7 +73,7 @@ spec:
           livenessProbe:
             tcpSocket:
               port: 20160
-            initialDelaySeconds: 5
+            initialDelaySeconds: 30
             periodSeconds: 5
             timeoutSeconds: 1
             successThreshold: 1
@@ -81,7 +81,7 @@ spec:
           readinessProbe:
             tcpSocket:
               port: 20180
-            initialDelaySeconds: 5
+            initialDelaySeconds: 30
             periodSeconds: 5
             timeoutSeconds: 1
             successThreshold: 1
