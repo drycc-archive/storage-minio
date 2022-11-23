@@ -80,12 +80,12 @@ meta:
 csi:
   enabled: true
   daemonset:
-    registrarImage: k8s.gcr.io/sig-storage/csi-node-driver-registrar:v2.5.0
+    registrarImage: registry.drycc.cc/k8s/sig-storage/csi-node-driver-registrar:v2.5.0
   statefulset:
     replicas: 1
-    resizerImage: k8s.gcr.io/sig-storage/csi-resizer:v1.4.0
-    attacherImage: k8s.gcr.io/sig-storage/csi-attacher:v3.4.0
-    provisionerImage: k8s.gcr.io/sig-storage/csi-provisioner:v3.1.0
+    resizerImage: registry.drycc.cc/k8s/sig-storage/csi-resizer:v1.4.0
+    attacherImage: registry.drycc.cc/k8s/sig-storage/csi-attacher:v3.4.0
+    provisionerImage: registry.drycc.cc/k8s/sig-storage/csi-provisioner:v3.1.0
   provider: juicefs
   storageClass:
     # Specifies whether the storage class should be created
