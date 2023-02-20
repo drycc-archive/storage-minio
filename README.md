@@ -1,6 +1,6 @@
 # Drycc Storage v3
 
-[![Build Status](https://drone.drycc.cc/api/badges/drycc/storage/status.svg)](https://drone.drycc.cc/drycc/storage)
+[![Build Status](https://woodpecker.drycc.cc/api/badges/drycc/storage/status.svg)](https://woodpecker.drycc.cc/drycc/storage)
 [![codecov](https://codecov.io/gh/drycc/storage/branch/main/graph/badge.svg)](https://codecov.io/gh/drycc/storage)
 [![Go Report Card](http://goreportcard.com/badge/drycc/storage)](http://goreportcard.com/report/drycc/storage)
 [![FOSSA Status](https://app.fossa.com/api/projects/git%2Bgithub.com%2Fdrycc%2Fstorage.svg?type=shield)](https://app.fossa.com/projects/git%2Bgithub.com%2Fdrycc%2Fstorage?ref=badge_shield)
