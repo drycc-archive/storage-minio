@@ -2,7 +2,7 @@
 
 [![Build Status](https://woodpecker.drycc.cc/api/badges/drycc/storage/status.svg)](https://woodpecker.drycc.cc/drycc/storage)
 [![codecov](https://codecov.io/gh/drycc/storage/branch/main/graph/badge.svg)](https://codecov.io/gh/drycc/storage)
-[![Go Report Card](http://goreportcard.com/badge/drycc/storage)](http://goreportcard.com/report/drycc/storage)
+[![Go Report Card](https://img.shields.io/badge/go%20report-A+-brightgreen.svg?style=flat)](http://goreportcard.com/report/drycc/storage)
 [![FOSSA Status](https://app.fossa.com/api/projects/git%2Bgithub.com%2Fdrycc%2Fstorage.svg?type=shield)](https://app.fossa.com/projects/git%2Bgithub.com%2Fdrycc%2Fstorage?ref=badge_shield)
 
 Drycc (pronounced DAY-iss) Workflow is an open source Platform as a Service (PaaS) that adds a developer-friendly layer to any [Kubernetes](http://kubernetes.io) cluster, making it easy to deploy and manage applications on your own servers.
