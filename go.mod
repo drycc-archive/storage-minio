@@ -10,7 +10,7 @@ require (
 	github.com/minio/madmin-go v1.4.25
 	github.com/minio/minio-go/v7 v7.0.33
 	github.com/mitchellh/go-ps v1.0.0
-	golang.org/x/net v0.0.0-20220826154423-83b083e8dc8b
+	golang.org/x/net v0.7.0
 	google.golang.org/grpc v1.49.0
 	k8s.io/klog/v2 v2.70.1
 	k8s.io/mount-utils v0.25.0
@@ -43,8 +43,8 @@ require (
 	github.com/tklauser/numcpus v0.2.2 // indirect
 	golang.org/x/crypto v0.0.0-20220722155217-630584e8d5aa // indirect
 	golang.org/x/sync v0.0.0-20210220032951-036812b2e83c // indirect
-	golang.org/x/sys v0.0.0-20220728004956-3c1f35247d10 // indirect
-	golang.org/x/text v0.3.8 // indirect
+	golang.org/x/sys v0.5.0 // indirect
+	golang.org/x/text v0.7.0 // indirect
 	google.golang.org/genproto v0.0.0-20210602131652-f16073e35f0c // indirect
 	google.golang.org/protobuf v1.28.0 // indirect
 	gopkg.in/ini.v1 v1.66.6 // indirect
