@@ -45,5 +45,5 @@ spec:
             kubernetes.io/metadata.name: {{ .Release.Namespace }}
         podSelector:
           matchLabels:
-            app: drycc-monitor-telegraf
+            app: drycc-prometheus
 {{- end }}
