@@ -1,6 +1,7 @@
 name: storage
 home: https://github.com/drycc/storage
 apiVersion: v2
+appVersion: 1.0.0
 dependencies:
   - name: common
     repository: oci://registry.drycc.cc/charts
