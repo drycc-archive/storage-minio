@@ -5,17 +5,17 @@ RUN export GO111MODULE=on \
   && cd /workspace \
   && CGO_ENABLED=0 init-stack go build -ldflags '-s' -o /usr/local/bin/boot boot.go
 
-FROM registry.drycc.cc/drycc/base:bullseye
+FROM registry.drycc.cc/drycc/base:bookworm
 
 COPY --from=build /usr/local/bin/boot /bin/boot
 
 ENV DRYCC_UID=1001 \
   DRYCC_GID=1001 \
   DRYCC_HOME_DIR=/data \
-  MC_VERSION="2022.09.16.09.16.47" \
-  MINIO_VERSION="2022.09.25.15.44.53" \
-  JUICEFS_VERSION="1.0.0" \
-  TIKV_VERSION="6.1.1"
+  MC_VERSION="2023.06.15.15.08.26" \
+  MINIO_VERSION="2023.06.16.02.41.06" \
+  JUICEFS_VERSION="1.0.4" \
+  TIKV_VERSION="7.1.0"
 
 
 RUN groupadd drycc --gid ${DRYCC_GID} \
