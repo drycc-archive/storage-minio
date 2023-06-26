@@ -4,6 +4,9 @@ kind: Service
 metadata:
   name: drycc-storage-meta-tikv
   annotations:
+    prometheus.io/path: /metrics
+    prometheus.io/port: "20180"
+    prometheus.io/scrape: "true"
     {{- with .Values.meta.tikv.service.annotations }}
     {{- toYaml . | nindent 4 }}
     {{- end }}

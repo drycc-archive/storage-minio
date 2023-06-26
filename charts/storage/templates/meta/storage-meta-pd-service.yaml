@@ -4,6 +4,9 @@ kind: Service
 metadata:
   name: drycc-storage-meta-pd
   annotations:
+    prometheus.io/path: /metrics
+    prometheus.io/port: "2379"
+    prometheus.io/scrape: "true"
     {{- with .Values.meta.pd.service.annotations }}
     {{- toYaml . | nindent 4 }}
     {{- end }}
