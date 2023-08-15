@@ -21,12 +21,12 @@ spec:
       app: drycc-storage-minio
   template:
     metadata:
-      labels:
+      labels: {{- include "common.labels.standard" . | nindent 8 }}
         app: drycc-storage-minio
     spec:
       affinity:
-        podAffinity: {{- include "common.affinities.pods" (dict "type" .Values.minio.podAffinityPreset.type "key" .Values.minio.podAffinityPreset.key "values" .Values.minio.podAffinityPreset.values ) | nindent 10 }}
-        podAntiAffinity: {{- include "common.affinities.pods" (dict "type" .Values.minio.podAntiAffinityPreset.type "key" .Values.minio.podAntiAffinityPreset.key "values" .Values.minio.podAntiAffinityPreset.values ) | nindent 10 }}
+        podAffinity: {{- include "common.affinities.pods" (dict "type" .Values.minio.podAffinityPreset.type "component" "" "extraMatchLabels" .Values.minio.podAffinityPreset.extraMatchLabels "topologyKey" "" "context" $) | nindent 10 }}
+        podAntiAffinity: {{- include "common.affinities.pods" (dict "type" .Values.minio.podAntiAffinityPreset.type "component" "" "extraMatchLabels" .Values.minio.podAntiAffinityPreset.extraMatchLabels "topologyKey" "" "context" $) | nindent 10 }}
         nodeAffinity: {{- include "common.affinities.nodes" (dict "type" .Values.minio.nodeAffinityPreset.type "key" .Values.minio.nodeAffinityPreset.key "values" .Values.minio.nodeAffinityPreset.values ) | nindent 10 }}
       serviceAccount: drycc-storage
       containers:

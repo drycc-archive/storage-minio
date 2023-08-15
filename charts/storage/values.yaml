@@ -11,20 +11,19 @@ minio:
     values:
     - "true"
   podAffinityPreset:
-    key: "security"
     type: ""
-    values:
-    - "drycc-security"
+    extraMatchLabels:
+      security: "drycc-security"
+
+  podAntiAffinityPreset:
+    type: "soft"
+    extraMatchLabels:
+      app: "drycc-storage"
   # Service
   service:
     # Provide any additional service annotations
     annotations: {}
   # The following parameters are configured only when using an on-cluster Storage instance
-  podAntiAffinityPreset:
-    key: "app"
-    type: "soft"
-    values:
-    - "drycc-storage"
   # Storage zone count
   zones: 1
   # Device count of per replica
@@ -46,10 +45,9 @@ meta:
       annotations: {}
     replicas: 1
     podAntiAffinityPreset:
-      key: "app"
       type: "soft"
-      values:
-      - "drycc-storage-meta-pd"
+      extraMatchLabels:
+        app: "drycc-storage-meta-pd"
     # persistence config
     persistence:
       enabled: true
@@ -65,10 +63,9 @@ meta:
       annotations: {}
     replicas: 1
     podAntiAffinityPreset:
-      key: "app"
       type: "soft"
-      values:
-      - "drycc-storage-meta-tikv"
+      extraMatchLabels:
+        app: "drycc-storage-meta-tikv"
   # persistence config
     persistence:
       enabled: true
