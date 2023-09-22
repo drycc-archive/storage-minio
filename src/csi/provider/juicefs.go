@@ -43,7 +43,7 @@ func (provider *juicefsProvider) ParseFlag() error {
 }
 
 func (provider *juicefsProvider) NodeMountVolume(bucket, prefix, path string, capacity uint64, context map[string]string, options ...string) error {
-	metaURL, err := provider.formatJuicefs(bucket, prefix, path, capacity, context, options...)
+	metaURL, err := provider.formatJuicefs(bucket, prefix, capacity, context)
 	if err != nil {
 		return err
 	}
@@ -77,7 +77,7 @@ func (provider *juicefsProvider) ControllerExpandVolume(bucket, prefix string, c
 	cmd := exec.Command("juicefs", args...)
 
 	cmd.Stderr = os.Stderr
-	glog.V(3).Infof("juicefs config with command: %s and args: %s", "juicefs", args)
+	glog.V(3).Infof("juicefs config with command: %s and args: %s and context: %s", "juicefs", args, context)
 
 	input, e := cmd.StdinPipe()
 	defer input.Close()
@@ -100,7 +100,7 @@ func (provider *juicefsProvider) formatCapacity(capacity uint64) uint64 {
 	return capacity
 }
 
-func (provider *juicefsProvider) formatJuicefs(bucket, prefix, path string, capacity uint64, context map[string]string, options ...string) (string, error) {
+func (provider *juicefsProvider) formatJuicefs(bucket, prefix string, capacity uint64, context map[string]string) (string, error) {
 	endpoint := context["endpoint"]
 	accessKey := context["accesskey"]
 	secretKey := context["secretkey"]

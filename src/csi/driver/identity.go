@@ -29,7 +29,7 @@ type IdentityServer struct {
 }
 
 func (ids *IdentityServer) GetPluginInfo(ctx context.Context, req *csi.GetPluginInfoRequest) (*csi.GetPluginInfoResponse, error) {
-	glog.V(5).Infof("using default GetPluginInfo")
+	glog.V(5).Infof("using default GetPluginInfo: %#v, %#v", ctx, req)
 
 	if ids.driver.name == "" {
 		return nil, status.Error(codes.Unavailable, "driver name not configured")
@@ -46,11 +46,12 @@ func (ids *IdentityServer) GetPluginInfo(ctx context.Context, req *csi.GetPlugin
 }
 
 func (ids *IdentityServer) Probe(ctx context.Context, req *csi.ProbeRequest) (*csi.ProbeResponse, error) {
+	glog.V(5).Infof("using Probe: %#v, %#v", ctx, req)
 	return &csi.ProbeResponse{}, nil
 }
 
 func (ids *IdentityServer) GetPluginCapabilities(ctx context.Context, req *csi.GetPluginCapabilitiesRequest) (*csi.GetPluginCapabilitiesResponse, error) {
-	glog.V(5).Infof("using default capabilities")
+	glog.V(5).Infof("using default capabilities: %#v, %#v", ctx, req)
 	return &csi.GetPluginCapabilitiesResponse{
 		Capabilities: []*csi.PluginCapability{
 			{

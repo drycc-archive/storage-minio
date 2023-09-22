@@ -15,11 +15,10 @@ COPY --from=build /usr/local/bin/boot /bin/boot
 ENV DRYCC_UID=1001 \
   DRYCC_GID=1001 \
   DRYCC_HOME_DIR=/data \
-  MC_VERSION="2023.06.15.15.08.26" \
-  MINIO_VERSION="2023.06.16.02.41.06" \
-  JUICEFS_VERSION="1.0.4" \
-  TIKV_VERSION="7.1.0"
-
+  MC_VERSION="2023.09.20.15.22.31" \
+  MINIO_VERSION="2023.09.20.22.49.55" \
+  JUICEFS_VERSION="1.1.0" \
+  TIKV_VERSION="7.3.0"
 
 RUN groupadd drycc --gid ${DRYCC_GID} \
   && useradd drycc -u ${DRYCC_UID} -g ${DRYCC_GID} -s /bin/bash -m -d ${DRYCC_HOME_DIR} \

@@ -136,7 +136,7 @@ func checkError(err error) {
 	}
 }
 
-func runDriver(command string) {
+func runDriver(string) {
 	nodeID := os.Getenv("DRYCC_STORAGE_CSI_NODE_ID")
 	provider := os.Getenv("DRYCC_STORAGE_CSI_PROVIDER")
 	endpoint := os.Getenv("DRYCC_STORAGE_CSI_ENDPOINT")
@@ -157,7 +157,7 @@ func runDriver(command string) {
 	os.Exit(0)
 }
 
-func runMinio(command string) {
+func runMinio(string) {
 	os.Args[0] = defaultMinioExec
 	runErrCh := make(chan error)
 	healthSrvErrCh := make(chan error)
@@ -185,17 +185,18 @@ func checkConnect(host string, timeout time.Duration) bool {
 	return false
 }
 
-func startPDServer(command string) {
+func startPDServer(string) {
 	endpointsString := os.Getenv("DRYCC_STORAGE_PD_ENDPOINTS")
 	endpoints := strings.Split(endpointsString, ",")
 	for index := range endpoints {
-		if endpoint, err := url.Parse(endpoints[index]); err != nil {
+		var err error
+		var endpoint *url.URL
+		if endpoint, err = url.Parse(endpoints[index]); err != nil {
 			log.Fatal(err)
-		} else {
-			if checkConnect(endpoint.Host, 5) {
-				os.Args = append(os.Args, "--join", endpointsString)
-				break
-			}
+		}
+		if checkConnect(endpoint.Host, 5) {
+			os.Args = append(os.Args, "--join", endpointsString)
+			break
 		}
 	}
 	runCommand("pd-server")
@@ -220,11 +221,12 @@ func runCommand(cmd string) {
 }
 
 func help() {
-	if tpl, err := template.New("help").Parse(mainHelpTemplate); err != nil {
+	var err error
+	var tpl *template.Template
+	if tpl, err = template.New("help").Parse(mainHelpTemplate); err != nil {
 		log.Fatal(err)
-	} else {
-		tpl.Execute(os.Stdout, commandRunners)
 	}
+	tpl.Execute(os.Stdout, commandRunners)
 }
 
 func main() {

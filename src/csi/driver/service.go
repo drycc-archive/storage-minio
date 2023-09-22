@@ -69,17 +69,14 @@ func (service *DriveService) Run() {
 	service.driver.AddVolumeCapabilityAccessModes([]csi.VolumeCapability_AccessMode_Mode{csi.VolumeCapability_AccessMode_MULTI_NODE_MULTI_WRITER})
 
 	// Create GRPC servers
+	var err error
 	service.ids = service.newIdentityServer(service.driver)
-	if nodeServer, err := service.newNodeServer(service.driver); err != nil {
+	if service.ns, err = service.newNodeServer(service.driver); err != nil {
 		log.Fatal(err)
-	} else {
-		service.ns = nodeServer
 	}
 
-	if controllerServer, err := service.newControllerServer(service.driver); err != nil {
+	if service.cs, err = service.newControllerServer(service.driver); err != nil {
 		log.Fatal(err)
-	} else {
-		service.cs = controllerServer
 	}
 
 	s := NewNonBlockingGRPCServer()

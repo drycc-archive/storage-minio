@@ -3,15 +3,14 @@ package provider
 import (
 	"errors"
 	"fmt"
-	"io/ioutil"
 	"math"
 	"os"
+	"strconv"
 	"strings"
 	"syscall"
 	"time"
 
 	"github.com/golang/glog"
-	"github.com/mitchellh/go-ps"
 	"k8s.io/mount-utils"
 )
 
@@ -90,19 +89,23 @@ func (provider *BaseProvider) NodeCheckMountVolume(path string) (bool, error) {
 }
 
 func (provider *BaseProvider) findFuseMountProcess(path string) (*os.Process, error) {
-	processes, err := ps.Processes()
+	dirs, err := os.ReadDir("/proc")
 	if err != nil {
 		return nil, err
 	}
-	for _, p := range processes {
-		cmdLine, err := provider.getCmdLine(p.Pid())
-		if err != nil {
-			glog.Errorf("unable to get cmdline of PID %v: %s", p.Pid(), err)
-			continue
-		}
-		if strings.Contains(cmdLine, path) {
-			glog.Infof("found matching pid %v on path %s", p.Pid(), path)
-			return os.FindProcess(p.Pid())
+	for _, file := range dirs {
+		if file.IsDir() {
+			if pid, err := strconv.Atoi(file.Name()); err == nil && pid != os.Getpid() {
+				cmdLine, err := provider.getCmdLine(pid)
+				if err != nil {
+					glog.Errorf("unable to get cmdline of PID %v: %s", pid, err)
+					continue
+				}
+				if strings.Contains(cmdLine, path) {
+					glog.Infof("found matching pid %v on path %s", pid, path)
+					return os.FindProcess(pid)
+				}
+			}
 		}
 	}
 	return nil, nil
@@ -135,7 +138,7 @@ func (provider *BaseProvider) waitForProcess(p *os.Process, limit int) error {
 
 func (provider *BaseProvider) getCmdLine(pid int) (string, error) {
 	cmdLineFile := fmt.Sprintf("/proc/%v/cmdline", pid)
-	cmdLine, err := ioutil.ReadFile(cmdLineFile)
+	cmdLine, err := os.ReadFile(cmdLineFile)
 	if err != nil {
 		return "", err
 	}

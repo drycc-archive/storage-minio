@@ -45,6 +45,7 @@ type NodeServer struct {
 }
 
 func (ns *NodeServer) NodePublishVolume(ctx context.Context, req *csi.NodePublishVolumeRequest) (*csi.NodePublishVolumeResponse, error) {
+	glog.V(5).Infof("using NodePublishVolume: %#v, %#v", ctx, req)
 	volumeID := req.GetVolumeId()
 	targetPath := req.GetTargetPath()
 	stagingTargetPath := req.GetStagingTargetPath()
@@ -98,6 +99,7 @@ func (ns *NodeServer) NodePublishVolume(ctx context.Context, req *csi.NodePublis
 }
 
 func (ns *NodeServer) NodeUnpublishVolume(ctx context.Context, req *csi.NodeUnpublishVolumeRequest) (*csi.NodeUnpublishVolumeResponse, error) {
+	glog.V(5).Infof("using NodeUnpublishVolume: %#v, %#v", ctx, req)
 	volumeID := req.GetVolumeId()
 	targetPath := req.GetTargetPath()
 
@@ -118,6 +120,7 @@ func (ns *NodeServer) NodeUnpublishVolume(ctx context.Context, req *csi.NodeUnpu
 }
 
 func (ns *NodeServer) NodeStageVolume(ctx context.Context, req *csi.NodeStageVolumeRequest) (*csi.NodeStageVolumeResponse, error) {
+	glog.V(5).Infof("using NodeStageVolume: %#v, %#v", ctx, req)
 	volumeID := req.GetVolumeId()
 	stagingTargetPath := req.GetStagingTargetPath()
 
@@ -145,6 +148,7 @@ func (ns *NodeServer) NodeStageVolume(ctx context.Context, req *csi.NodeStageVol
 }
 
 func (ns *NodeServer) NodeUnstageVolume(ctx context.Context, req *csi.NodeUnstageVolumeRequest) (*csi.NodeUnstageVolumeResponse, error) {
+	glog.V(5).Infof("using NodeUnstageVolume: %#v, %#v", ctx, req)
 	volumeID := req.GetVolumeId()
 	stagingTargetPath := req.GetStagingTargetPath()
 
@@ -162,6 +166,7 @@ func (ns *NodeServer) NodeUnstageVolume(ctx context.Context, req *csi.NodeUnstag
 // NodeGetCapabilities returns the supported capabilities of the node server
 func (ns *NodeServer) NodeGetCapabilities(ctx context.Context, req *csi.NodeGetCapabilitiesRequest) (*csi.NodeGetCapabilitiesResponse, error) {
 	// currently there is a single NodeServer capability according to the spec
+	glog.V(5).Infof("using NodeGetCapabilities: %#v, %#v", ctx, req)
 	var caps []*csi.NodeServiceCapability
 	for _, cap := range nodeCaps {
 		c := &csi.NodeServiceCapability{
@@ -177,7 +182,7 @@ func (ns *NodeServer) NodeGetCapabilities(ctx context.Context, req *csi.NodeGetC
 }
 
 func (ns *NodeServer) NodeGetInfo(ctx context.Context, req *csi.NodeGetInfoRequest) (*csi.NodeGetInfoResponse, error) {
-	glog.V(5).Infof("using default NodeGetInfo")
+	glog.V(5).Infof("using NodeGetInfo: %#v, %#v", ctx, req)
 
 	return &csi.NodeGetInfoResponse{
 		NodeId: ns.driver.nodeID,
@@ -186,10 +191,12 @@ func (ns *NodeServer) NodeGetInfo(ctx context.Context, req *csi.NodeGetInfoReque
 
 // NodeExpandVolume unimplemented
 func (ns *NodeServer) NodeExpandVolume(ctx context.Context, req *csi.NodeExpandVolumeRequest) (*csi.NodeExpandVolumeResponse, error) {
+	glog.V(5).Infof("using NodeExpandVolume: %#v, %#v", ctx, req)
 	return nil, status.Error(codes.Unimplemented, "")
 }
 
 // NodeGetVolumeStats unimplemented
 func (ns *NodeServer) NodeGetVolumeStats(ctx context.Context, req *csi.NodeGetVolumeStatsRequest) (*csi.NodeGetVolumeStatsResponse, error) {
+	glog.V(5).Infof("using NodeGetVolumeStats: %#v, %#v", ctx, req)
 	return nil, status.Error(codes.Unimplemented, "")
 }
