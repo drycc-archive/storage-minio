@@ -30,7 +30,7 @@ spec:
       serviceAccount: drycc-storage
       initContainers:
       - name: drycc-storage-meta-tikv-init
-        image: docker.io/drycc/python-dev:latest
+        image: registry.drycc.cc/drycc/python-dev:latest
         imagePullPolicy: {{ .Values.imagePullPolicy }}
         args:
           - netcat

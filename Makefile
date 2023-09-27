@@ -1,11 +1,11 @@
 SHORT_NAME := storage
 PLATFORM ?= linux/amd64,linux/arm64
 
-# dockerized development environment variables
+# container development environment variables
 REPO_PATH := github.com/drycc/${SHORT_NAME}
 DEV_ENV_IMAGE := ${DEV_REGISTRY}/drycc/go-dev
 DEV_ENV_WORK_DIR := /opt/drycc/go/src/${REPO_PATH}
-DEV_ENV_PREFIX := docker run --env CGO_ENABLED=0 --rm -v ${CURDIR}:${DEV_ENV_WORK_DIR} -w ${DEV_ENV_WORK_DIR}
+DEV_ENV_PREFIX := podman run --env CGO_ENABLED=0 --rm -v ${CURDIR}:${DEV_ENV_WORK_DIR} -w ${DEV_ENV_WORK_DIR}
 DEV_ENV_CMD := ${DEV_ENV_PREFIX} ${DEV_ENV_IMAGE}
 
 LDFLAGS := "-s -X main.version=${VERSION}"
@@ -16,7 +16,7 @@ IMAGE_PREFIX ?= drycc
 
 include versioning.mk
 
-all: build docker-build docker-push
+all: build podman-build podman-push
 
 bootstrap:
 	${DEV_ENV_CMD} go mod vendor
@@ -34,14 +34,11 @@ test-style:
 test-cover:
 	${DEV_ENV_CMD} test-cover.sh
 
-docker-build:
+podman-build:
 	# build the main image
-	docker build ${DOCKER_BUILD_FLAGS} --build-arg CODENAME=${CODENAME} -t ${IMAGE} .
-	docker tag ${IMAGE} ${MUTABLE_IMAGE}
+	podman build --build-arg CODENAME=${CODENAME} -t ${IMAGE} .
+	podman tag ${IMAGE} ${MUTABLE_IMAGE}
 
-docker-buildx:
-	docker buildx build --build-arg CODENAME=${CODENAME} --platform ${PLATFORM} ${DOCKER_BUILD_FLAGS} -t ${IMAGE} . --push
+deploy: build podman-build podman-push
 
-deploy: build docker-build docker-push
-
-.PHONY: all bootstrap build test docker-build deploy
+.PHONY: all bootstrap build test podman-build deploy

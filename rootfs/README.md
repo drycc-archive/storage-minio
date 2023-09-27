@@ -1,7 +1,7 @@
 # RootFS
 
 This directory stores all files that should be copied to the rootfs of a
-Docker container. The files should be stored according to the correct
+container. The files should be stored according to the correct
 directory structure of the destination container. For example:
 
 ```
